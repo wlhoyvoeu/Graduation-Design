@@ -92,6 +92,30 @@ class Function:
             entry_path.delete(0, tk.END)  # 清空文本框内容
             entry_path.insert(0, file_path)  # 将选中的文件路径插入文本框
 
+    @staticmethod
+    def select_file_root(root, entry_path):
+        """
+            概述：选择文件
+            参数：参数1：根窗口
+                参数2：关于用户选择路径的entry控件
+            细节：因为上述选择文件全部都是在root中执行的，所以无需指定
+                但是应为使用的过多修改起来太麻烦，在此直接写个新方法
+                这里和java略有区别，不能直接更改参数，重写函数
+        """
+        directory = os.getcwd()  # 当前工作的绝对路径
+        # linux和windows中的路径斜杠好像有点不同
+        dir_path = directory + '/data'
+        print("保存路径：", dir_path)
+        file_path = filedialog.askopenfilename(
+            parent=root,
+            initialdir=dir_path,
+            title="选择数据包",
+            filetypes=(("pcap files", "*.pcap"), ("database files", "*.db"), ("All files", "*.*"))
+        )
+        if file_path:
+            entry_path.delete(0, tk.END)  # 清空文本框内容
+            entry_path.insert(0, file_path)  # 将选中的文件路径插入文本框
+
     def save_config(self, num, entry_text):
         """
             概述：保存配置

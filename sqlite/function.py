@@ -1,6 +1,7 @@
+import os
 import sqlite3
 from func.function import Function
-
+import subprocess
 class DatabaseFunc:
     """
         概述：数据库的各项功能
@@ -10,6 +11,10 @@ class DatabaseFunc:
         # self.text_display = None
         # 为了使用Function中的设置text的功能
         self.func = func
+        self.conn = None
+
+    def save_sqlite_path_config(self, num, entry):
+        self.func.save_config(num, entry)
         # 连接到 SQLite 数据库（如果不存在则会创建一个新的数据库文件）
         print("选择数据库的位置：", self.func.list_config[4])
         if self.func.list_config[4] == '':
@@ -63,43 +68,132 @@ class DatabaseFunc:
             text_content = "成功创建表格\n" + text_content
             self.func.set_content(text_content)
             self.func.display_text()
+        except sqlite3.Warning as e:
+            print("出现异常：", e)
+            self.func.set_content(str(e))
+            self.func.display_text()
         except sqlite3.OperationalError as e:
             print("出现异常：", e)
             self.func.set_content(str(e))
             self.func.display_text()
 
-        # 关闭游标和数据库连接
+        """# 关闭游标和数据库连接
         cursor.close()
-        conn.close()
+        conn.close()"""
 
-    def insert_database(self):
+    def insert_database(self, entry_pcap, entry_result):
+        """
+            概述：选择pcap和输出结果关联
+            参数：entry控件，里面的内容是pcap文件地址和result地址
+        """
+        # 分离出地址和文件名，数据库要用
+        pcap_path = entry_pcap.get()
+        result_path = entry_result.get()
+        # 使用 os.path.split() 函数分割文件地址和文件名
+        directory_pcap, filename_pcap = os.path.split(pcap_path)
+        directory_result, filename_result = os.path.split(result_path)
+
+        print("pcap文件地址（路径）:", directory_pcap)
+        print("pcap文件名:", filename_pcap)
+        print("result文件地址（路径）:", directory_result)
+        print("result文件名:", filename_result)
         conn = self.conn
         # 创建一个游标对象，用于执行 SQL 语句
         cursor = conn.cursor()
         # 定义查询语句
         try:
-            cursor.execute("INSERT INTO file_capturePackets (filename, filepath) VALUES (?, ?, ?)",
-                           ('0000', 'DBtestNoneData', '/path/to/you'))
-            cursor.execute("SELECT name FROM sqlite_master WHERE type='table';")
+            cursor.execute("INSERT INTO file_capturePackets (filename, filepath) VALUES (?, ?)",
+                           (filename_pcap, directory_pcap))
+            # 执行 SQL 查询上一布语句放入数据库中的文件id
+            cursor.execute("SELECT id FROM file_capturePackets WHERE filename = ?", (filename_pcap,))
+            result = cursor.fetchone()
+            if result:
+                pcap_id = result[0]
+                print(f"The ID of {filename_pcap} is: {pcap_id}")
+                # pcap插入数据库成功，执行下面语句
+                cursor.execute(
+                    "INSERT INTO file_out_result (filename, filepath, file_capturePackets_id) VALUES (?, ?, ?)",
+                    (filename_result, directory_result, pcap_id))
+                # 查询表一并反馈
+                cursor.execute("SELECT * FROM file_capturePackets;")
+                rows = cursor.fetchall()
+                text_content = ''
+                for row in rows:
+                    print(row)
+                    str_row = str(row) + '\n'
+                    text_content += str_row
+                text_content = "capturePacketsfile表格\n" + text_content + '\n'
+                # 查询表二并反馈
+                cursor.execute("SELECT * FROM file_out_result;")
+                rows = cursor.fetchall()
+                text_content = text_content + "output表格\n"
+                for row in rows:
+                    print(row)
+                    str_row = str(row) + '\n'
+                    text_content += str_row
+                print("成功插入数据\n", text_content)
+                text_content = "成功插入数据\n" + text_content
+                self.func.set_content(text_content)
+                self.func.display_text()
+            else:
+                print(f"No student with name {filename_pcap} found")
+        except sqlite3.Warning as e:
+            print("出现异常：", e)
+            self.func.set_content(str(e))
+            self.func.display_text()
+        except sqlite3.OperationalError as e:
+            print("出现异常：", e)
+            self.func.set_content(str(e))
+            self.func.display_text()
+
+        """# 关闭游标和数据库连接
+        cursor.close()
+        conn.close()"""
+
+    def delete_database(self, result_id):
+        """
+            概述：删除pcap和输出结果关联
+            参数：传入result表格的id即可，因为其关联pcap
+        """
+
+        conn = self.conn
+        # 创建一个游标对象，用于执行 SQL 语句
+        cursor = conn.cursor()
+        # 定义查询语句
+        try:
+            cursor.execute("DELETE FROM file_out_result WHERE id = ?", (result_id,))
+            cursor.execute(
+                "DELETE FROM file_capturePackets WHERE id = (SELECT file_capturePackets_id FROM file_out_result WHERE id = ?)",
+                (result_id,))
+            # 查询表一并反馈
+            cursor.execute("SELECT * FROM file_capturePackets;")
             rows = cursor.fetchall()
             text_content = ''
             for row in rows:
                 print(row)
                 str_row = str(row) + '\n'
                 text_content += str_row
-            print("成功创建表格")
-            text_content = "成功创建表格\n" + text_content
+            text_content = "capturePacketsfile表格\n" + text_content + '\n'
+            # 查询表二并反馈
+            cursor.execute("SELECT * FROM file_out_result;")
+            rows = cursor.fetchall()
+            text_content = text_content + "output表格\n"
+            for row in rows:
+                print(row)
+                str_row = str(row) + '\n'
+                text_content += str_row
+            print("成功删除数据\n", text_content)
+            text_content = "成功删除数据\n" + text_content
             self.func.set_content(text_content)
+            self.func.display_text()
+        except sqlite3.Warning as e:
+            print("出现异常：", e)
+            self.func.set_content(str(e))
             self.func.display_text()
         except sqlite3.OperationalError as e:
             print("出现异常：", e)
             self.func.set_content(str(e))
             self.func.display_text()
-
-        # 关闭游标和数据库连接
-        cursor.close()
-        conn.close()
-
 
     def view_database(self):
         """
@@ -144,7 +238,39 @@ class DatabaseFunc:
         self.func.set_content(text_content)
         self.func.display_text()
 
+        """# 关闭游标和数据库连接
+        cursor.close()
+        conn.close()"""
 
+    def execute_sql(self, text):
+        """
+            概述：用sql语句直接操纵数据库
+            参数：text控件
+        """
+        content = text.get("1.0", "end")
+        conn = self.conn
+        cursor = conn.cursor()
+        # 定义查询语句
+        try:
+            cursor.execute(content)
+            rows = cursor.fetchall()
+            text_content = ''
+            for row in rows:
+                print(row)
+                str_row = str(row) + '\n'
+                text_content += str_row
+            print("成功执行用户输入的sql语句")
+            text_content = "sql语句执行结果如下:\n" + text_content
+            self.func.set_content(text_content)
+            self.func.display_text()
+        except sqlite3.Warning as e:
+            print("出现异常：", e)
+            text_content = "请检查sql语句是否正确：\n" + str(e)
+            self.func.set_content(text_content)
+            self.func.display_text()
+
+        """
+        # 不能关闭，这里赋值用的是地址
         # 关闭游标和数据库连接
         cursor.close()
-        conn.close()
+        conn.close()"""

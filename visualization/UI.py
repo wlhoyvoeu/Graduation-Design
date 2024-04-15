@@ -292,6 +292,51 @@ def button_database_click(event):
         概述：展示数据库功能界面
         细节：包括增删改查
     """
+    def insert_database():
+        """
+            概述：可视化插入数据
+        """
+        # 创建一个顶层窗口
+        insert_window = tk.Toplevel(root)
+        insert_window.title("数据库可视化操作")
+        WAITWIDTH = 600
+        WAITHEIGHT = 200
+        # 获取root窗口信息
+        root.update()  # 刷新一下前面的配置
+        win_width = root.winfo_width()  # 获取窗口宽度（单位：像素）
+        win_height = root.winfo_height()  # 获取窗口高度（单位：像素）
+        root_x = root.winfo_x()  # 获取窗口左上角的 x 坐标（单位：像素）
+        root_y = root.winfo_y()  # 获取窗口左上角的 y 坐标（单位：像素）
+        win_x = (win_width - WAITWIDTH) / 2
+        win_y = (win_height - WAITHEIGHT) / 2
+        insert_window.geometry(f'{WAITWIDTH}x{WAITHEIGHT}+{int(win_x) + int(root_x)}+{int(win_y) + int(root_y)}')
+        label_insert_pcapfile = tk.Label(insert_window, text="选择pcapfile")
+        label_insert_pcapfile.grid(row=0, column=0, padx=5, pady=10, sticky="ew")
+        entry_insert_pcapfile = tk.Entry(insert_window, width=50)
+        entry_insert_pcapfile.grid(row=0, column=1, padx=5, pady=10, sticky="ew")
+        button_insert_pcapfile = tk.Button(insert_window, text="浏览",
+                                           command=lambda: func.select_file_root(insert_window, entry_insert_pcapfile))
+        button_insert_pcapfile.grid(row=0, column=2, padx=5, pady=10, sticky="ew")
+
+        label_insert_result = tk.Label(insert_window, text="选择算法输出结果")
+        label_insert_result.grid(row=1, column=0, padx=5, pady=10, sticky="ew")
+        entry_insert_result = tk.Entry(insert_window, width=50)
+        entry_insert_result.grid(row=1, column=1, padx=5, pady=10, sticky="ew")
+        button_insert_result = tk.Button(insert_window, text="浏览",
+                                         command=lambda: func.select_file_root(insert_window, entry_insert_result))
+        button_insert_result.grid(row=1, column=2, padx=5, pady=10, sticky="ew")
+
+        button_execute = tk.Button(insert_window, text="关联文件",
+                                   command=lambda: func_sqlite.insert_database(entry_insert_pcapfile,
+                                                                               entry_insert_result))
+        button_execute.grid(row=2, column=1, padx=5, pady=10, sticky="ew")
+        pass
+
+    def delete_database():
+        """
+            概述：可视化删除数据
+        """
+
     # 数据库功能实例
     func_sqlite = DatabaseFunc(func)
     """设置右上角展示界面"""
@@ -309,14 +354,14 @@ def button_database_click(event):
                                        command=lambda: Function.select_file(entry_select_database))
     button_select_database.grid(row=0, column=4, padx=5, pady=10, sticky="ew")
     # 保存配置组件
-    button_save = tk.Button(frame_bottom, text="保存设置", command=lambda: func.save_config(4, entry_select_database))
+    button_save = tk.Button(frame_bottom, text="保存设置", command=lambda: func_sqlite.save_sqlite_path_config(4, entry_select_database))
     button_save.grid(row=0, column=5, padx=5, pady=10, sticky="ew")
     # SQL语句
     label_SQL = tk.Label(frame_bottom, text="SQL语句")
     label_SQL.grid(row=1, column=0, padx=5, pady=10, sticky="ew")
     text_SQL = tk.Text(frame_bottom, width=5, height=3)
     text_SQL.grid(row=1, column=1, padx=5, pady=10, columnspan=4, sticky="ew")
-    button_SQL = tk.Button(frame_bottom, text="执行", command=lambda: func_sqlite.execute_sql())
+    button_SQL = tk.Button(frame_bottom, text="执行", command=lambda: func_sqlite.execute_sql(text_SQL))
     button_SQL.grid(row=1, column=5, padx=5, pady=10, sticky="ew")
     # 快捷指令
     label_quick_instruction = tk.Label(frame_bottom, text="快捷指令")
@@ -326,12 +371,10 @@ def button_database_click(event):
                                        command=lambda: func_sqlite.create_database())
     button_create_database.grid(row=2, column=1, padx=5, pady=10, sticky="ew")
     # 增加数据
-    button_insert_database = tk.Button(frame_bottom, text="添加数据",
-                                       command=lambda: func_sqlite.insert_database())
+    button_insert_database = tk.Button(frame_bottom, text="添加数据", command=insert_database)
     button_insert_database.grid(row=2, column=2, padx=5, pady=10, sticky="ew")
     # 删除数据
-    button_delete_database = tk.Button(frame_bottom, text="删除数据",
-                                       command=lambda: func_sqlite.create_database())
+    button_delete_database = tk.Button(frame_bottom, text="删除数据", command=delete_database)
     button_delete_database.grid(row=2, column=3, padx=5, pady=10, sticky="ew")
     # 查找数据
     button_view_database = tk.Button(frame_bottom, text="查找数据",
