@@ -286,6 +286,29 @@ def button_preprocessing_click(event):
     func.set_content(default_text)
     func.display_text()
 
+def create_window(root, width, height):
+    """
+        概述：创建一个顶层窗口
+        参数：父类窗口，窗口长宽
+        详情：在该父类窗口的中间位置创建一个窗口600*200
+        返回值：窗口对象
+    """
+    # 创建一个顶层窗口
+    new_window = tk.Toplevel(root)
+    new_window.title("数据库可视化操作")
+    WAITWIDTH = width
+    WAITHEIGHT = height
+    # 获取root窗口信息
+    root.update()  # 刷新一下前面的配置
+    win_width = root.winfo_width()  # 获取窗口宽度（单位：像素）
+    win_height = root.winfo_height()  # 获取窗口高度（单位：像素）
+    root_x = root.winfo_x()  # 获取窗口左上角的 x 坐标（单位：像素）
+    root_y = root.winfo_y()  # 获取窗口左上角的 y 坐标（单位：像素）
+    win_x = (win_width - WAITWIDTH) / 2
+    win_y = (win_height - WAITHEIGHT) / 2
+    new_window.geometry(f'{WAITWIDTH}x{WAITHEIGHT}+{int(win_x) + int(root_x)}+{int(win_y) + int(root_y)}')
+    return new_window
+
 
 def button_database_click(event):
     """
@@ -296,20 +319,7 @@ def button_database_click(event):
         """
             概述：可视化插入数据
         """
-        # 创建一个顶层窗口
-        insert_window = tk.Toplevel(root)
-        insert_window.title("数据库可视化操作")
-        WAITWIDTH = 600
-        WAITHEIGHT = 200
-        # 获取root窗口信息
-        root.update()  # 刷新一下前面的配置
-        win_width = root.winfo_width()  # 获取窗口宽度（单位：像素）
-        win_height = root.winfo_height()  # 获取窗口高度（单位：像素）
-        root_x = root.winfo_x()  # 获取窗口左上角的 x 坐标（单位：像素）
-        root_y = root.winfo_y()  # 获取窗口左上角的 y 坐标（单位：像素）
-        win_x = (win_width - WAITWIDTH) / 2
-        win_y = (win_height - WAITHEIGHT) / 2
-        insert_window.geometry(f'{WAITWIDTH}x{WAITHEIGHT}+{int(win_x) + int(root_x)}+{int(win_y) + int(root_y)}')
+        insert_window = create_window(root, 600, 200)
         label_insert_pcapfile = tk.Label(insert_window, text="选择pcapfile")
         label_insert_pcapfile.grid(row=0, column=0, padx=5, pady=10, sticky="ew")
         entry_insert_pcapfile = tk.Entry(insert_window, width=50)
@@ -336,7 +346,14 @@ def button_database_click(event):
         """
             概述：可视化删除数据
         """
-
+        delete_window = create_window(root, 250, 100)
+        label_delete = tk.Label(delete_window, text="result_file_id")
+        label_delete.grid(row=0, column=0, padx=5, pady=10, sticky="ew")
+        entry_delete = tk.Entry(delete_window, width=10)
+        entry_delete.grid(row=0, column=1, padx=5, pady=10, sticky="ew")
+        button_delete = tk.Button(delete_window, text="删除",
+                                           command=lambda: func_sqlite.delete_database(entry_delete.get()))
+        button_delete.grid(row=1, column=0, padx=5, pady=10, columnspan=2, sticky="ew")
     # 数据库功能实例
     func_sqlite = DatabaseFunc(func)
     """设置右上角展示界面"""
@@ -393,5 +410,3 @@ def button_database_click(event):
     func.set_content(default_text)
     func.display_text()
 
-
-init()

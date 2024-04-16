@@ -68,6 +68,7 @@ class DatabaseFunc:
             text_content = "成功创建表格\n" + text_content
             self.func.set_content(text_content)
             self.func.display_text()
+            conn.commit()
         except sqlite3.Warning as e:
             print("出现异常：", e)
             self.func.set_content(str(e))
@@ -135,6 +136,7 @@ class DatabaseFunc:
                 text_content = "成功插入数据\n" + text_content
                 self.func.set_content(text_content)
                 self.func.display_text()
+                conn.commit()
             else:
                 print(f"No student with name {filename_pcap} found")
         except sqlite3.Warning as e:
@@ -161,10 +163,11 @@ class DatabaseFunc:
         cursor = conn.cursor()
         # 定义查询语句
         try:
-            cursor.execute("DELETE FROM file_out_result WHERE id = ?", (result_id,))
             cursor.execute(
                 "DELETE FROM file_capturePackets WHERE id = (SELECT file_capturePackets_id FROM file_out_result WHERE id = ?)",
                 (result_id,))
+            cursor.execute("DELETE FROM file_out_result WHERE id = ?", (result_id,))
+
             # 查询表一并反馈
             cursor.execute("SELECT * FROM file_capturePackets;")
             rows = cursor.fetchall()
@@ -186,6 +189,7 @@ class DatabaseFunc:
             text_content = "成功删除数据\n" + text_content
             self.func.set_content(text_content)
             self.func.display_text()
+            conn.commit()
         except sqlite3.Warning as e:
             print("出现异常：", e)
             self.func.set_content(str(e))
@@ -263,6 +267,7 @@ class DatabaseFunc:
             text_content = "sql语句执行结果如下:\n" + text_content
             self.func.set_content(text_content)
             self.func.display_text()
+            conn.commit()
         except sqlite3.Warning as e:
             print("出现异常：", e)
             text_content = "请检查sql语句是否正确：\n" + str(e)
