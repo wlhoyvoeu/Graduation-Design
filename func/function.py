@@ -24,8 +24,9 @@ class Function:
             list_config[2]--->选择数据包路径
             list_config[3]--->处理结果的保存路径
             list_config[4]--->数据库的路径
+            list_config[5]--->抓取数据包的过滤条件
         """
-        self.list_config = [-1, '', '', '', '']   # 配置以列表的形式存储
+        self.list_config = [-1, '', '', '', '', '']   # 配置以列表的形式存储
         self.content_default = None
         self.content_current = None
         self.text_display = None
@@ -154,7 +155,7 @@ class Function:
 
         try:
             # 使用用户输入的数量
-            packets = sniff(prn=packet_callback, count=self.list_config[0])
+            packets = sniff(prn=packet_callback, count=self.list_config[0], filter=self.list_config[5])
         except Scapy_Exception as e:
             print("抓取数据包出现问题", e)
         else:

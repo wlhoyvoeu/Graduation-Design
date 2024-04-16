@@ -12,7 +12,7 @@ window_x = root.winfo_screenwidth()
 window_y = root.winfo_screenheight()
 # 设置窗口大小
 WIDTH = 880
-HEIGHT = 680
+HEIGHT = 650
 # 获取窗口左上角坐标
 x = (window_x - WIDTH) / 2
 y = (window_y - HEIGHT) / 2
@@ -97,46 +97,42 @@ def show_waiting_window():
     def run_task():
         """
             概述：创建进度条
-            详情：模拟进度条进度
+            详情：模拟进度条进度，这里废弃了，暂时用不到
         """
         progress_bar['value'] = 0  # 初始化进度条的值为0
         for i in range(101):
             progress_bar['value'] = i  # 更新进度条的值
-            progress_label.config(text=f"任务进度: {i}%")  # 更新进度标签的文本
+            # progress_label.config(text=f"任务进度: {i}%")  # 更新进度标签的文本
             root.update()  # 实时更新界面
             time.sleep(0.1)  # 模拟任务执行过程中的延迟
 
-    # 创建一个顶层窗口作为等待窗口
-    waiting_window = tk.Toplevel(root)
-    waiting_window.title("等待窗口")
-    WAITWIDTH = 300
-    WAITHEIGHT = 150
-    # 获取root窗口信息
-    root.update()  # 刷新一下前面的配置
-    win_width = root.winfo_width()  # 获取窗口宽度（单位：像素）
-    win_height = root.winfo_height()  # 获取窗口高度（单位：像素）
-    root_x = root.winfo_x()  # 获取窗口左上角的 x 坐标（单位：像素）
-    root_y = root.winfo_y()  # 获取窗口左上角的 y 坐标（单位：像素）
-    win_x = (win_width - WAITWIDTH) / 2
-    win_y = (win_height - WAITHEIGHT) / 2
-    waiting_window.geometry(f'{WAITWIDTH}x{WAITHEIGHT}+{int(win_x) + int(root_x)}+{int(win_y) + int(root_y)}')
-
+    # 创建一个顶层窗口
+    waiting_window = create_window(root, 300, 150)
+    waiting_window.title("waiting a moment")
     # 在等待窗口中添加一些文本和进度条
     label = tk.Label(waiting_window, text="请稍等...")
     label.pack(pady=10)
     # 创建任务进度标签
-    progress_label = tk.Label(waiting_window, text="任务进度: 0%")
-    progress_label.pack()
+    # progress_label = tk.Label(waiting_window, text="任务进度: 0%")
+    # progress_label.pack()
     # 创建进度条,这里使用不确定进度条参数
     progress_bar = ttk.Progressbar(waiting_window, orient='horizontal', mode='indeterminate')
     progress_bar.pack(fill='y', pady=20)
+    waiting_window.update()
+    waiting_window.mainloop()
 
     # 执行进度条
-    run_task()
+    # run_task()
 
-    # 关闭等待窗口
+    return waiting_window
+
+
+def destroy_waiting_window(waiting_window):
+    """
+        概述：删除等待窗口
+        参数：窗口
+    """
     waiting_window.destroy()
-
 
 # 抓取界面
 def button_graspData_click(event):
@@ -160,15 +156,19 @@ def button_graspData_click(event):
         # 不想改了，就这样吧，有空再说吧
         Function.save_file(entry_path)
 
-    def save_config(entry_num, entry_path):
+    def save_config(entry_num, entry_path, entry_filter):
         """
             概述：调用功能接口，实现保存配置功能
+            参数：抓取数据包的数量
+                pcap保存路径
+                抓取数据包过滤器
             细节：调用Function.save_config(entry_num, entry_path)的实例方法
                 将两个entry控件中的内容，保存到Function实例中（实际保存在func.list_config中）
         """
         # 第一个参数含义，详情见function
         func.save_config(0, entry_num)
         func.save_config(1, entry_path)
+        func.save_config(5, entry_filter)
 
     def grasp_data():
         """
@@ -177,7 +177,10 @@ def button_graspData_click(event):
                 将按照用户提供的路径和抓取数据包的数量进行抓取
                 后期可以将协议筛选也加入
         """
+        # 耗时操作，创建等待窗口
+        waiting_window = show_waiting_window()
         func.grasp_data()
+        waiting_window.destroy()
 
     # main中定义的变量好像有点特殊，应该是全局都可以搜索到
     # 但是在函数外面定义的好像，有点区别
@@ -192,23 +195,28 @@ def button_graspData_click(event):
     label_num.grid(row=0, column=0, padx=5, pady=10, sticky="ew")
     entry_num = tk.Entry(frame_bottom, width=10)
     entry_num.grid(row=0, column=1, padx=5, pady=10, sticky="ew")
+    # 设置抓取数据包的过滤条件
+    label_filter = tk.Label(frame_bottom, text="过滤条件")
+    label_filter.grid(row=0, column=2, padx=5, pady=10, sticky="ew")
+    entry_filter = tk.Entry(frame_bottom, width=10)
+    entry_filter.grid(row=0, column=3, padx=5, pady=10, sticky="ew")
     # 设置保存pcap文件路径组件
     label_path = tk.Label(frame_bottom, text="保存路径:")
     label_path.grid(row=1, column=0, padx=5, pady=10, sticky="ew")
     entry_path = tk.Entry(frame_bottom, width=50)
-    entry_path.grid(row=1, column=1, padx=5, pady=10, sticky="ew")
+    entry_path.grid(row=1, column=1, padx=5, pady=10, columnspan=3, sticky="ew")
     button_browse = tk.Button(frame_bottom, text="浏览", command=lambda: save_file(entry_path))
-    button_browse.grid(row=1, column=2, padx=5, pady=10, sticky="ew")
+    button_browse.grid(row=1, column=4, padx=5, pady=10, sticky="ew")
     # 废弃：button_browse.bind('<ButtonRelease-1>', select_file)
     # 保存配置组件
-    button_save = tk.Button(frame_bottom, text="保存设置", command=lambda: save_config(entry_num, entry_path))
+    button_save = tk.Button(frame_bottom, text="保存设置", command=lambda: save_config(entry_num, entry_path, entry_filter))
     button_save.grid(row=2, column=0, padx=5, pady=10, sticky="ew")
     # 抓取数据包
     button_graspData = tk.Button(frame_bottom, text='抓取数据包', command=lambda: grasp_data())
-    button_graspData.grid(row=2, column=1, padx=5, pady=10, columnspan=2, sticky="ew")
+    button_graspData.grid(row=2, column=1, padx=5, pady=10, columnspan=4, sticky="ew")
     # 创建一个label用于提示
-    label_cue = tk.Label(frame_bottom, text="注意:请在数据库板块设置数据库, 默认xxx")
-    label_cue.grid(row=4, column=0, padx=5, pady=10, columnspan=3, sticky="ew")
+    # label_cue = tk.Label(frame_bottom, text="注意:请在数据库板块设置数据库, 默认xxx")
+    # label_cue.grid(row=4, column=0, padx=5, pady=10, columnspan=3, sticky="ew")
 
     # 设置右上角展示框架
     default_text = "功能介绍：\n" \
@@ -242,10 +250,15 @@ def button_preprocessing_click(event):
                 概述：预处理程序
                 详情：利用脚本命令启动nemesys工具，将输出结果用extract_colored_text方法处理
                 返回值：无需返回值
+                废弃：该功能在func.function中
             """
 
+        waiting_window = show_waiting_window()
         print("处理解析数据测试")
         func.handle_data()
+        # time.sleep(10)
+        waiting_window.destroy()
+
 
     """设置右上角展示界面"""
     text_display = set_right_top_frame()
@@ -275,8 +288,8 @@ def button_preprocessing_click(event):
     button_graspData = tk.Button(frame_bottom, text='处理解析', command=lambda: handle_data())
     button_graspData.grid(row=2, column=1, padx=5, pady=10, columnspan=2, sticky="ew")
     # 创建一个label用于提示
-    label_cue = tk.Label(frame_bottom, text="注意:请在数据库板块设置数据库, 默认xxx")
-    label_cue.grid(row=4, column=0, padx=5, pady=10, columnspan=3, sticky="ew")
+    # label_cue = tk.Label(frame_bottom, text="注意:请在数据库板块设置数据库, 默认xxx")
+    # label_cue.grid(row=4, column=0, padx=5, pady=10, columnspan=3, sticky="ew")
     # 设置右上角展示框架
     default_text = "功能介绍：\n" \
                    "\t请选择想要处理的数据包\n" \
@@ -295,7 +308,7 @@ def create_window(root, width, height):
     """
     # 创建一个顶层窗口
     new_window = tk.Toplevel(root)
-    new_window.title("数据库可视化操作")
+    new_window.title("默认窗口（可以自行设置）")
     WAITWIDTH = width
     WAITHEIGHT = height
     # 获取root窗口信息
@@ -319,7 +332,9 @@ def button_database_click(event):
         """
             概述：可视化插入数据
         """
+        # 创建弹窗
         insert_window = create_window(root, 600, 200)
+        insert_window.title("向数据库插入数据")
         label_insert_pcapfile = tk.Label(insert_window, text="选择pcapfile")
         label_insert_pcapfile.grid(row=0, column=0, padx=5, pady=10, sticky="ew")
         entry_insert_pcapfile = tk.Entry(insert_window, width=50)
@@ -346,7 +361,8 @@ def button_database_click(event):
         """
             概述：可视化删除数据
         """
-        delete_window = create_window(root, 250, 100)
+        delete_window = create_window(root, 200, 100)
+        delete_window.title("删除数据")
         label_delete = tk.Label(delete_window, text="result_file_id")
         label_delete.grid(row=0, column=0, padx=5, pady=10, sticky="ew")
         entry_delete = tk.Entry(delete_window, width=10)
