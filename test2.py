@@ -1,46 +1,55 @@
 import tkinter as tk
+from tkinter import ttk
+import threading
+import time
 
+def create_waiting_window():
+    # 创建主窗口
+    waiting_window = tk.Toplevel()
+    waiting_window.title("请稍等...")
 
-def show_frames(root):
-    # 获取 root 的所有子控件
-    children = root.winfo_children()
+    # 添加标签
+    label = tk.Label(waiting_window, text="任务进行中，请稍候...")
+    label.pack(pady=10)
 
-    # 遍历所有子控件
-    for child in children:
-        # 如果子控件是 Frame 类型，并且当前可见，则打印其名称
-        if isinstance(child, tk.Frame) :
-            print("Frame名称:", child.winfo_name())
-def show_frame(frame):
-    # 隐藏所有帧布局
-    frame1.pack_forget()
-    frame2.pack_forget()
+    # 创建进度条
+    progress_bar = ttk.Progressbar(waiting_window, orient='horizontal', mode='indeterminate')
+    progress_bar.pack(pady=10)
 
-    # 显示指定的帧布局
-    frame.pack()
+    # 启动进度条动画
+    progress_bar.start()
 
+    # 设置窗口大小并居中显示
+    waiting_window.geometry("300x100")
+    waiting_window.update_idletasks()
+    x = (waiting_window.winfo_screenwidth() - waiting_window.winfo_width()) // 2
+    y = (waiting_window.winfo_screenheight() - waiting_window.winfo_height()) // 2
+    waiting_window.geometry("+{}+{}".format(x, y))
+
+    return waiting_window
+
+def task():
+    # 模拟任务执行
+    time.sleep(5)
+
+    # 任务完成后关闭等待窗口
+    waiting_window.destroy()
+
+def start_task():
+    # 创建等待窗口
+    global waiting_window
+    waiting_window = create_waiting_window()
+
+    # 启动子线程执行任务
+    t = threading.Thread(target=task)
+    t.start()
 
 # 创建主窗口
 root = tk.Tk()
+root.title("主窗口")
 
-# 创建两个帧布局
-frame1 = tk.Frame(root, width=200, height=200, bg="red")
-frame2 = tk.Frame(root, width=200, height=200, bg="blue")
+# 创建按钮来触发任务
+button = tk.Button(root, text="启动任务", command=start_task)
+button.pack(pady=20)
 
-# 创建按钮
-button1 = tk.Button(root, text="显示红色帧布局", command=lambda: show_frame(frame1))
-button2 = tk.Button(root, text="显示蓝色帧布局", command=lambda: show_frame(frame2))
-button3 = tk.Button(root, text="查看当前存在的布局", command=lambda: show_frames(root))
-
-# 将按钮放置在主窗口上
-button1.pack()
-button2.pack()
-button3.pack()
-
-# 初始化时显示第一个帧布局
-show_frame(frame1)
-
-# 查看当前开启的帧
-# show_frames(root)
-
-# 运行主事件循环
 root.mainloop()

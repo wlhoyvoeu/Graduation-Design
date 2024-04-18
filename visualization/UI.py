@@ -1,3 +1,4 @@
+import threading
 import time
 import tkinter as tk
 from tkinter import filedialog
@@ -12,7 +13,7 @@ window_x = root.winfo_screenwidth()
 window_y = root.winfo_screenheight()
 # 设置窗口大小
 WIDTH = 880
-HEIGHT = 650
+HEIGHT = 630
 # 获取窗口左上角坐标
 x = (window_x - WIDTH) / 2
 y = (window_y - HEIGHT) / 2
@@ -40,7 +41,32 @@ button_database = tk.Button(frame_left, text="数据库")
 # 功能API,可全局调用
 func = Function()
 
+"""
+    感觉这样不规范（应该放在一块定义？？？）
+    但是这个布局确实只需要定义一次即可，下次要使用的时候直接调用设置即可
+    一开始想的是，将控件等都放入布局中（省去了加载时间），但是这样每个按钮都需要额外定义两个框架（好像也可以）
+    总共3个按钮，再创建6个子框架
+    所有的创建框架布局改成，使用设定好的框架布局
+        设置框架布局函数，重写成两部分
+            一部分用于设置框架，并将控件放入布局中（所以这部分函数只需要调用一次即可，所以不写函数也可以，但是为了好看？结构清晰，还是创建函数）
+            另一部分用于点击按钮时，将布局展示出来
+"""
+# 在这创建三个右上部分的框架，用于放置text控件
+frame_top_grasp = tk.Frame(frame_right)
+frame_top_handle = tk.Frame(frame_right)
+frame_top_database = tk.Frame(frame_right)
+# 右下角框架
+frame_bottom_grasp = tk.Frame(frame_right)
+frame_bottom_handle = tk.Frame(frame_right)
+frame_bottom_database = tk.Frame(frame_right)
+# 运行错误的，只是为了暂时观看方便
+# set_right_top_frame(frame_top_grasp)
+# 我们将设置框架放在init中
 
+# 定义一个窗口线程
+global progress_bar_thread
+
+# 启动函数
 def init():
     """
         概述：初始化界面
@@ -73,7 +99,7 @@ def init():
     set_right_frame_grasp(frame_top_grasp, frame_bottom_grasp)
     set_right_frame_handle(frame_top_handle, frame_bottom_handle)
     set_right_frame_database(frame_top_database, frame_bottom_database)
-    # 测试按钮，用于测试当前创建的帧布局
+    """# 测试按钮，用于测试当前创建的帧布局
     # 因为该问题不解决的话，很容易造成程序崩溃
     def show_frames(root):
         # 获取 root 的所有子控件
@@ -86,31 +112,8 @@ def init():
                 print("Frame名称:", child.winfo_name())
 
     button_test = tk.Button(frame_left, text="测试布局数量", command=lambda: show_frames(frame_right))
-    button_test.pack()
+    button_test.pack()"""
     root.mainloop()
-
-
-"""
-    感觉这样不规范（应该放在一块定义？？？）
-    但是这个布局确实只需要定义一次即可，下次要使用的时候直接调用设置即可
-    一开始想的是，将控件等都放入布局中（省去了加载时间），但是这样每个按钮都需要额外定义两个框架（好像也可以）
-    总共3个按钮，再创建6个子框架
-    所有的创建框架布局改成，使用设定好的框架布局
-        设置框架布局函数，重写成两部分
-            一部分用于设置框架，并将控件放入布局中（所以这部分函数只需要调用一次即可，所以不写函数也可以，但是为了好看？结构清晰，还是创建函数）
-            另一部分用于点击按钮时，将布局展示出来
-"""
-# 在这创建三个右上部分的框架，用于放置text控件
-frame_top_grasp = tk.Frame(frame_right, bg='red')
-frame_top_handle = tk.Frame(frame_right, bg='red')
-frame_top_database = tk.Frame(frame_right, bg='red')
-# 右下角框架
-frame_bottom_grasp = tk.Frame(frame_right, bg='yellow')
-frame_bottom_handle = tk.Frame(frame_right, bg='yellow')
-frame_bottom_database = tk.Frame(frame_right, bg='yellow')
-# 运行错误的，只是为了暂时观看方便
-# set_right_top_frame(frame_top_grasp)
-# 我们将设置框架放在init中
 
 
 def set_right_top_frame(frame_top):
@@ -128,7 +131,7 @@ def set_right_top_frame(frame_top):
     # 创建一个Scrollbar控件，设置orient为垂直方向
     scrollbar = tk.Scrollbar(frame_top, orient="vertical")
     # 创建一个Text控件，并设置yscrollcommand与Scrollbar的滚动事件绑定
-    text_display = tk.Text(frame_top, bg='black', fg='white', yscrollcommand=scrollbar.set)
+    text_display = tk.Text(frame_top, yscrollcommand=scrollbar.set)
     # 将Scrollbar与Text的滚动事件绑定
     scrollbar.config(command=text_display.yview)
     # 设置Text控件的宽度和高度
@@ -164,22 +167,8 @@ def create_window(root, width, height):
 def show_waiting_window():
     """
         概述：创建一个等待窗口
-        详情：略
-        内涵函数：run_task
-        返回值：无
+        返回值：等待窗口
     """
-
-    def run_task():
-        """
-            概述：创建进度条
-            详情：模拟进度条进度，这里废弃了，暂时用不到
-        """
-        progress_bar['value'] = 0  # 初始化进度条的值为0
-        for i in range(101):
-            progress_bar['value'] = i  # 更新进度条的值
-            # progress_label.config(text=f"任务进度: {i}%")  # 更新进度标签的文本
-            root.update()  # 实时更新界面
-            time.sleep(0.1)  # 模拟任务执行过程中的延迟
 
     # 创建一个顶层窗口
     waiting_window = create_window(root, 300, 150)
@@ -193,13 +182,17 @@ def show_waiting_window():
     # 创建进度条,这里使用不确定进度条参数
     progress_bar = ttk.Progressbar(waiting_window, orient='horizontal', mode='indeterminate')
     progress_bar.pack(fill='y', pady=20)
+    """
+        注释：进度条使用start才会启动动画
+            mainloop会自动检测内部所有控件
+            所以如果程序在某处执行了耗时操作，此操作会占用主线程，导致无法检测内部控件，进度条自然就不动了
+    """
     progress_bar.start()
     waiting_window.update()
-
-    # 执行进度条
-    # run_task()
+    # waiting_window.mainloop()
 
     return waiting_window
+
 
 
 def destroy_waiting_window(waiting_window):
@@ -208,7 +201,6 @@ def destroy_waiting_window(waiting_window):
         参数：窗口
     """
     waiting_window.destroy()
-
 
 def set_right_frame_grasp(frame_top, frame_bottom):
     """
@@ -257,10 +249,26 @@ def set_right_frame_grasp(frame_top, frame_bottom):
                 将按照用户提供的路径和抓取数据包的数量进行抓取
                 后期可以将协议筛选也加入
         """
+        def task():
+            """
+                概述:将抓取数据包这样的耗时操作放入线程中处理
+            """
+            # 设置一下展示容器
+            func.set_text(text_display)
+            # print("休眠5秒")
+            # time.sleep(5)
+            func.grasp_data()
+            waiting_window.destroy()
+
         # 耗时操作，创建等待窗口
         waiting_window = show_waiting_window()
-        func.grasp_data()
-        waiting_window.destroy()
+
+        # 启动子线程执行任务
+        t = threading.Thread(target=task)
+        t.start()
+
+
+
 
     # main中定义的变量好像有点特殊，应该是全局都可以搜索到
     # 但是在函数外面定义的好像，有点区别
@@ -280,7 +288,7 @@ def set_right_frame_grasp(frame_top, frame_bottom):
     # 设置保存pcap文件路径组件
     label_path = tk.Label(frame_bottom, text="保存路径:")
     label_path.grid(row=1, column=0, padx=5, pady=10, sticky="ew")
-    entry_path = tk.Entry(frame_bottom, width=50)
+    entry_path = tk.Entry(frame_bottom, width=55)
     entry_path.grid(row=1, column=1, padx=5, pady=10, columnspan=3, sticky="ew")
     button_browse = tk.Button(frame_bottom, text="浏览", command=lambda: save_file(entry_path))
     button_browse.grid(row=1, column=4, padx=5, pady=10, sticky="ew")
@@ -330,12 +338,26 @@ def set_right_frame_handle(frame_top, frame_bottom):
                 返回值：无需返回值
                 废弃：该功能在func.function中
             """
+        def task():
+            """
+                概述：将解析处理这一耗时操作放到线程中处理
+            """
+            print("处理解析数据测试")
+            try:
+                # 设置一下展示容器
+                func.set_text(text_display)
+                func.handle_data()
+            except PermissionError as e:
+                # time.sleep(10)
+                print("大概率权限有问题")
+            finally:
+                waiting_window.destroy()
+
 
         waiting_window = show_waiting_window()
-        print("处理解析数据测试")
-        func.handle_data()
-        # time.sleep(10)
-        waiting_window.destroy()
+        # 启动子线程执行任务
+        t = threading.Thread(target=task)
+        t.start()
 
     """设置右上角展示界面"""
     text_display = set_right_top_frame(frame_top)
@@ -351,7 +373,7 @@ def set_right_frame_handle(frame_top, frame_bottom):
     # 设置保存pcap文件路径组件
     label_path = tk.Label(frame_bottom, text="保存路径:")
     label_path.grid(row=1, column=0, padx=5, pady=10, sticky="ew")
-    entry_path = tk.Entry(frame_bottom, width=50)
+    entry_path = tk.Entry(frame_bottom, width=55)
     entry_path.grid(row=1, column=1, padx=5, pady=10, sticky="ew")
     button_browse = tk.Button(frame_bottom, text="浏览", command=lambda: Function.save_file(entry_path))
     button_browse.grid(row=1, column=2, padx=5, pady=10, sticky="ew")
@@ -496,7 +518,7 @@ def show_frame(frame_top, frame_bottom):
     frame_top.place(relx=0, rely=0, relwidth=1, relheight=0.70)
     frame_bottom.place(relx=0, rely=0.70, relwidth=1, relheight=0.3)
 
-# 抓取界面
+
 def button_graspData_click(event):
     """
         概述：展示抓取数据的界面布局

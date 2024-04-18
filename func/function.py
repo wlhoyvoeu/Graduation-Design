@@ -155,7 +155,8 @@ class Function:
 
         try:
             # 使用用户输入的数量
-            packets = sniff(prn=packet_callback, count=self.list_config[0], filter=self.list_config[5])
+            # , filter=self.list_config[5]
+            packets = sniff(prn=packet_callback, count=self.list_config[0])
         except Scapy_Exception as e:
             print("抓取数据包出现问题", e)
         else:
@@ -178,6 +179,7 @@ class Function:
         """
             概述：处理解析数据包
             细节：包括预处理数据，和算法处理
+            返回值：True程序执行完毕
         """
 
         def extract_colored_text(file_path):
@@ -354,6 +356,7 @@ class Function:
         preprocessing()
         file_path = run_LinearRegression()
         output_result(file_path)
+        return True
 
     def database_function(self):
         """
