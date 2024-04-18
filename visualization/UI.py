@@ -64,15 +64,66 @@ def init():
     button_database.pack(fill=tk.BOTH, expand=True)
     button_database.bind('<ButtonRelease-1>', button_database_click)
 
+    # 初始化不同按钮的初始化布局
+    """
+    这些放入设置右边布局的函数中
+    set_right_top_frame(frame_top_grasp)
+    set_right_top_frame(frame_top_handle)
+    set_right_top_frame(frame_top_database)"""
+    set_right_frame_grasp(frame_top_grasp, frame_bottom_grasp)
+    set_right_frame_handle(frame_top_handle, frame_bottom_handle)
+    set_right_frame_database(frame_top_database, frame_bottom_database)
+    # 测试按钮，用于测试当前创建的帧布局
+    # 因为该问题不解决的话，很容易造成程序崩溃
+    def show_frames(root):
+        # 获取 root 的所有子控件
+        children = root.winfo_children()
+
+        # 遍历所有子控件
+        for child in children:
+            # 如果子控件是 Frame 类型，并且当前可见，则打印其名称
+            if isinstance(child, tk.Frame):
+                print("Frame名称:", child.winfo_name())
+
+    button_test = tk.Button(frame_left, text="测试布局数量", command=lambda: show_frames(frame_right))
+    button_test.pack()
     root.mainloop()
 
 
-def set_right_top_frame():
+"""
+    感觉这样不规范（应该放在一块定义？？？）
+    但是这个布局确实只需要定义一次即可，下次要使用的时候直接调用设置即可
+    一开始想的是，将控件等都放入布局中（省去了加载时间），但是这样每个按钮都需要额外定义两个框架（好像也可以）
+    总共3个按钮，再创建6个子框架
+    所有的创建框架布局改成，使用设定好的框架布局
+        设置框架布局函数，重写成两部分
+            一部分用于设置框架，并将控件放入布局中（所以这部分函数只需要调用一次即可，所以不写函数也可以，但是为了好看？结构清晰，还是创建函数）
+            另一部分用于点击按钮时，将布局展示出来
+"""
+# 在这创建三个右上部分的框架，用于放置text控件
+frame_top_grasp = tk.Frame(frame_right, bg='red')
+frame_top_handle = tk.Frame(frame_right, bg='red')
+frame_top_database = tk.Frame(frame_right, bg='red')
+# 右下角框架
+frame_bottom_grasp = tk.Frame(frame_right, bg='yellow')
+frame_bottom_handle = tk.Frame(frame_right, bg='yellow')
+frame_bottom_database = tk.Frame(frame_right, bg='yellow')
+# 运行错误的，只是为了暂时观看方便
+# set_right_top_frame(frame_top_grasp)
+# 我们将设置框架放在init中
+
+
+def set_right_top_frame(frame_top):
     """
-        概述：创建上半部分text控件
+        概述：创建右上半部分text控件
+        参数：右上部分框架
+        细节：将创建的text控件，放入传入的右上框架中
+            该函数，每个右上角框架只需要调用一次即可
+        返回值：text控件
     """
-    frame_top = tk.Frame(frame_right, bg='red')
-    frame_top.place(relx=0, rely=0, relwidth=1, relheight=0.70)
+
+    # 原本的启动帧布局的方式
+    # frame_top.place(relx=0, rely=0, relwidth=1, relheight=0.70)
     # 滚动条控件
     # 创建一个Scrollbar控件，设置orient为垂直方向
     scrollbar = tk.Scrollbar(frame_top, orient="vertical")
@@ -84,6 +135,30 @@ def set_right_top_frame():
     text_display.pack(fill='both', expand=True, side='left')
     scrollbar.pack(side="right", fill="y")
     return text_display
+
+
+def create_window(root, width, height):
+    """
+        概述：创建一个顶层窗口
+        参数：父类窗口，窗口长宽
+        详情：在该父类窗口的中间位置创建一个窗口600*200
+        返回值：窗口对象
+    """
+    # 创建一个顶层窗口
+    new_window = tk.Toplevel(root)
+    new_window.title("默认窗口（可以自行设置）")
+    WAITWIDTH = width
+    WAITHEIGHT = height
+    # 获取root窗口信息
+    root.update()  # 刷新一下前面的配置
+    win_width = root.winfo_width()  # 获取窗口宽度（单位：像素）
+    win_height = root.winfo_height()  # 获取窗口高度（单位：像素）
+    root_x = root.winfo_x()  # 获取窗口左上角的 x 坐标（单位：像素）
+    root_y = root.winfo_y()  # 获取窗口左上角的 y 坐标（单位：像素）
+    win_x = (win_width - WAITWIDTH) / 2
+    win_y = (win_height - WAITHEIGHT) / 2
+    new_window.geometry(f'{WAITWIDTH}x{WAITHEIGHT}+{int(win_x) + int(root_x)}+{int(win_y) + int(root_y)}')
+    return new_window
 
 
 def show_waiting_window():
@@ -118,8 +193,8 @@ def show_waiting_window():
     # 创建进度条,这里使用不确定进度条参数
     progress_bar = ttk.Progressbar(waiting_window, orient='horizontal', mode='indeterminate')
     progress_bar.pack(fill='y', pady=20)
+    progress_bar.start()
     waiting_window.update()
-    waiting_window.mainloop()
 
     # 执行进度条
     # run_task()
@@ -134,10 +209,15 @@ def destroy_waiting_window(waiting_window):
     """
     waiting_window.destroy()
 
-# 抓取界面
-def button_graspData_click(event):
+
+def set_right_frame_grasp(frame_top, frame_bottom):
     """
-        概述：展示抓取数据的界面布局
+        概述：创建抓取数据包的右边框架
+        参数：抓取数据包的右上布局框架，右下布局框架
+        细节：这玩意指向性有点强，只是为了设置抓取数据包的框架,和控件功能
+        开发者注：但是为什么用函数呢？只是为了结构清晰
+            但是好像不符合规范，因为函数就是为了避免许多相同功能的代码重复
+            按照我理解的规范，这段函数应该写在启动函数中
     """
 
     # print(button_graspData)
@@ -184,12 +264,9 @@ def button_graspData_click(event):
 
     # main中定义的变量好像有点特殊，应该是全局都可以搜索到
     # 但是在函数外面定义的好像，有点区别
-
-    """设置右上角展示界面"""
-    text_display = set_right_top_frame()
+    """设置右上角布局"""
+    text_display = set_right_top_frame(frame_top)
     """设置右下角组件"""
-    frame_bottom = tk.Frame(frame_right, bg='yellow')
-    frame_bottom.place(relx=0, rely=0.70, relwidth=1, relheight=0.3)
     # 设置抓取数据包的数量组件
     label_num = tk.Label(frame_bottom, text="抓取数据包的数量:")
     label_num.grid(row=0, column=0, padx=5, pady=10, sticky="ew")
@@ -209,7 +286,8 @@ def button_graspData_click(event):
     button_browse.grid(row=1, column=4, padx=5, pady=10, sticky="ew")
     # 废弃：button_browse.bind('<ButtonRelease-1>', select_file)
     # 保存配置组件
-    button_save = tk.Button(frame_bottom, text="保存设置", command=lambda: save_config(entry_num, entry_path, entry_filter))
+    button_save = tk.Button(frame_bottom, text="保存设置",
+                            command=lambda: save_config(entry_num, entry_path, entry_filter))
     button_save.grid(row=2, column=0, padx=5, pady=10, sticky="ew")
     # 抓取数据包
     button_graspData = tk.Button(frame_bottom, text='抓取数据包', command=lambda: grasp_data())
@@ -228,11 +306,11 @@ def button_graspData_click(event):
     func.display_text()
 
 
-def button_preprocessing_click(event):
+def set_right_frame_handle(frame_top, frame_bottom):
     """
-        概述：展示处理进程的界面
+        概述：设置数据处理的右边框架
+        参数：数据处理的右上布局框架，右下布局框架
     """
-
     def save_config(entry_select_packet, entry_path):
         """
             概述：保存处理进程界面的配置
@@ -259,13 +337,10 @@ def button_preprocessing_click(event):
         # time.sleep(10)
         waiting_window.destroy()
 
-
     """设置右上角展示界面"""
-    text_display = set_right_top_frame()
+    text_display = set_right_top_frame(frame_top)
     """设置右下角组件"""
-    frame_bottom = tk.Frame(frame_right, bg='yellow')
-    frame_bottom.place(relx=0, rely=0.70, relwidth=1, relheight=0.3)
-    # 设置抓取数据包的数量组件
+    # 设置选择数据包的组件
     label_select_packet = tk.Label(frame_bottom, text="选择数据包:")
     label_select_packet.grid(row=0, column=0, padx=5, pady=10, sticky="ew")
     entry_select_packet = tk.Entry(frame_bottom, width=10)
@@ -299,34 +374,11 @@ def button_preprocessing_click(event):
     func.set_content(default_text)
     func.display_text()
 
-def create_window(root, width, height):
-    """
-        概述：创建一个顶层窗口
-        参数：父类窗口，窗口长宽
-        详情：在该父类窗口的中间位置创建一个窗口600*200
-        返回值：窗口对象
-    """
-    # 创建一个顶层窗口
-    new_window = tk.Toplevel(root)
-    new_window.title("默认窗口（可以自行设置）")
-    WAITWIDTH = width
-    WAITHEIGHT = height
-    # 获取root窗口信息
-    root.update()  # 刷新一下前面的配置
-    win_width = root.winfo_width()  # 获取窗口宽度（单位：像素）
-    win_height = root.winfo_height()  # 获取窗口高度（单位：像素）
-    root_x = root.winfo_x()  # 获取窗口左上角的 x 坐标（单位：像素）
-    root_y = root.winfo_y()  # 获取窗口左上角的 y 坐标（单位：像素）
-    win_x = (win_width - WAITWIDTH) / 2
-    win_y = (win_height - WAITHEIGHT) / 2
-    new_window.geometry(f'{WAITWIDTH}x{WAITHEIGHT}+{int(win_x) + int(root_x)}+{int(win_y) + int(root_y)}')
-    return new_window
 
-
-def button_database_click(event):
+def set_right_frame_database(frame_top, frame_bottom):
     """
-        概述：展示数据库功能界面
-        细节：包括增删改查
+        概述：设置数据库的右边框架
+        参数：数据库的右上布局框架，右下布局框架
     """
     def insert_database():
         """
@@ -368,16 +420,15 @@ def button_database_click(event):
         entry_delete = tk.Entry(delete_window, width=10)
         entry_delete.grid(row=0, column=1, padx=5, pady=10, sticky="ew")
         button_delete = tk.Button(delete_window, text="删除",
-                                           command=lambda: func_sqlite.delete_database(entry_delete.get()))
+                                  command=lambda: func_sqlite.delete_database(entry_delete.get()))
         button_delete.grid(row=1, column=0, padx=5, pady=10, columnspan=2, sticky="ew")
+
     # 数据库功能实例
     func_sqlite = DatabaseFunc(func)
     """设置右上角展示界面"""
-    text_display = set_right_top_frame()
+    text_display = set_right_top_frame(frame_top)
     # func_sqlite.set_text(text_display)  # 将text组件设置到数据库功能实例中
     """设置右下角组件"""
-    frame_bottom = tk.Frame(frame_right, bg='yellow')
-    frame_bottom.place(relx=0, rely=0.70, relwidth=1, relheight=0.3)
     # 选择数据库
     label_select_database = tk.Label(frame_bottom, text="选择数据库:")
     label_select_database.grid(row=0, column=0, padx=5, pady=10, sticky="ew")
@@ -387,7 +438,8 @@ def button_database_click(event):
                                        command=lambda: Function.select_file(entry_select_database))
     button_select_database.grid(row=0, column=4, padx=5, pady=10, sticky="ew")
     # 保存配置组件
-    button_save = tk.Button(frame_bottom, text="保存设置", command=lambda: func_sqlite.save_sqlite_path_config(4, entry_select_database))
+    button_save = tk.Button(frame_bottom, text="保存设置",
+                            command=lambda: func_sqlite.save_sqlite_path_config(4, entry_select_database))
     button_save.grid(row=0, column=5, padx=5, pady=10, sticky="ew")
     # SQL语句
     label_SQL = tk.Label(frame_bottom, text="SQL语句")
@@ -425,4 +477,48 @@ def button_database_click(event):
     func.set_text(text_display)
     func.set_content(default_text)
     func.display_text()
+
+
+def show_frame(frame_top, frame_bottom):
+    """
+        概述：展示界面
+        参数：右上布局，和右下布局
+        细节：隐藏其他界面，展示当前界面
+    """
+    # 隐藏所有frame
+    frame_top_grasp.place_forget()
+    frame_top_handle.place_forget()
+    frame_top_database.place_forget()
+    frame_bottom_grasp.place_forget()
+    frame_bottom_handle.place_forget()
+    frame_bottom_database.place_forget()
+    # 展示frame
+    frame_top.place(relx=0, rely=0, relwidth=1, relheight=0.70)
+    frame_bottom.place(relx=0, rely=0.70, relwidth=1, relheight=0.3)
+
+# 抓取界面
+def button_graspData_click(event):
+    """
+        概述：展示抓取数据的界面布局
+        细节：将抓取数据界面的frame，展现出来
+        开发者注：其实直接调用show_frame作为点击事项即可，但是不想该了，毕竟前面写了那么久，有感情了
+    """
+    show_frame(frame_top_grasp, frame_bottom_grasp)
+
+
+def button_preprocessing_click(event):
+    """
+        概述：展示处理进程的界面
+        开发者：其实直接调用show_frame作为点击事项即可，但是不想该了，毕竟前面写了那么久，有感情了
+    """
+    show_frame(frame_top_handle,frame_bottom_handle)
+
+
+def button_database_click(event):
+    """
+        概述：展示数据库功能界面
+        细节：包括增删改查
+        开发者注：其实直接调用show_frame作为点击事项即可，但是不想该了，毕竟前面写了那么久，有感情了
+    """
+    show_frame(frame_top_database, frame_bottom_database)
 
