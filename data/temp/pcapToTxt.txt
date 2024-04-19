@@ -1,0 +1,20 @@
+Ether / ARP who has 192.168.0.100 says 192.168.0.1
+None
+Ether / ARP is at 30:c9:ab:33:ce:7f says 192.168.0.100
+None
+Ether / IP / UDP / NBNSHeader / NBNSQueryRequest who has '\\WHY'
+None
+Ether / IP / UDP / NBNSHeader / NBNSQueryRequest who has '\\WHY'
+None
+Ether / IP / UDP / NBNSHeader / NBNSQueryRequest who has '\\WHY'
+None
+Ether / IP / TCP 192.168.0.100:60644 > 118.89.69.244:4443 PA / Raw
+None
+Ether / IP / TCP 192.168.0.100:60644 > 118.89.69.244:4443 PA / Raw
+None
+Ether / IP / TCP 118.89.69.244:4443 > 192.168.0.100:60644 A
+None
+Ether / IP / TCP 118.89.69.244:4443 > 192.168.0.100:60644 PA / Raw
+None
+Ether / IP / TCP 118.89.69.244:4443 > 192.168.0.100:60644 PA / Raw
+None

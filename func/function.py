@@ -9,6 +9,7 @@ import Rose.code.LinearRegression as LR
 import numpy as np
 from fractions import Fraction as F
 
+
 # 感觉可以将所有的控件，都放在一个列表中一并传入？？？
 # 其实该函数的所有功能基本都可以静态，因为不依赖实例
 # 后期可以将str_config抽象出来，写入另一个文件中config
@@ -26,12 +27,13 @@ class Function:
             list_config[4]--->数据库的路径
             list_config[5]--->抓取数据包的过滤条件
         """
-        self.list_config = [-1, '', '', '', '', '']   # 配置以列表的形式存储
+        self.list_config = [-1, '', '', '', '', '']  # 配置以列表的形式存储
         self.content_default = None
         self.content_current = None
         self.text_display = None
 
     """设置text的功能"""
+
     def set_text(self, text_display):
         self.text_display = text_display
 
@@ -54,6 +56,7 @@ class Function:
         self.text_display.insert('1.0', self.content_current)
 
     """抓取数据包所需的功能"""
+
     @staticmethod
     def save_file(entry_path):
         """
@@ -80,18 +83,21 @@ class Function:
             概述：选择文件
             参数：关于用户选择路径的entry控件
         """
-        directory = os.getcwd()  # 当前工作的绝对路径
-        # linux和windows中的路径斜杠好像有点不同
-        dir_path = directory + '/data'
-        print("保存路径：", dir_path)
-        file_path = filedialog.askopenfilename(
-            initialdir=dir_path,
-            title="选择数据包",
-            filetypes=(("pcap files", "*.pcap"), ("database files", "*.db"), ("All files", "*.*"))
-        )
-        if file_path:
-            entry_path.delete(0, tk.END)  # 清空文本框内容
-            entry_path.insert(0, file_path)  # 将选中的文件路径插入文本框
+        try:
+            directory = os.getcwd()  # 当前工作的绝对路径
+            # linux和windows中的路径斜杠好像有点不同
+            dir_path = directory + '/data'
+            print("保存路径：", dir_path)
+            file_path = filedialog.askopenfilename(
+                initialdir=dir_path,
+                title="选择数据包",
+                filetypes=(("pcap files", "*.pcap"), ("database files", "*.db"), ("All files", "*.*"))
+            )
+            if file_path:
+                entry_path.delete(0, tk.END)  # 清空文本框内容
+                entry_path.insert(0, file_path)  # 将选中的文件路径插入文本框
+        except IOError  as e:
+            print("文件打开出现问题：", e)
 
     @staticmethod
     def select_file_root(root, entry_path):
@@ -103,32 +109,34 @@ class Function:
                 但是应为使用的过多修改起来太麻烦，在此直接写个新方法
                 这里和java略有区别，不能直接更改参数，重写函数
         """
-        directory = os.getcwd()  # 当前工作的绝对路径
-        # linux和windows中的路径斜杠好像有点不同
-        dir_path = directory + '/data'
-        print("保存路径：", dir_path)
-        file_path = filedialog.askopenfilename(
-            parent=root,
-            initialdir=dir_path,
-            title="选择数据包",
-            filetypes=(("pcap files", "*.pcap"), ("database files", "*.db"), ("All files", "*.*"))
-        )
-        if file_path:
-            entry_path.delete(0, tk.END)  # 清空文本框内容
-            entry_path.insert(0, file_path)  # 将选中的文件路径插入文本框
+        try:
+            directory = os.getcwd()  # 当前工作的绝对路径
+            # linux和windows中的路径斜杠好像有点不同
+            dir_path = directory + '/data'
+            print("保存路径：", dir_path)
+            file_path = filedialog.askopenfilename(
+                parent=root,
+                initialdir=dir_path,
+                title="选择数据包",
+                filetypes=(("pcap files", "*.pcap"), ("database files", "*.db"), ("All files", "*.*"))
+            )
+            if file_path:
+                entry_path.delete(0, tk.END)  # 清空文本框内容
+                entry_path.insert(0, file_path)  # 将选中的文件路径插入文本框
+        except ValueError as e:
+            print("文件打开出现问题：", e)
 
     def save_config(self, num, entry_text):
         """
             概述：保存配置
             细节：将获取两个输入框的内容，并保存
         """
-        if num:# num!=0
+        if num:  # num!=0
             self.list_config[num] = entry_text.get()
         else:
             self.list_config[num] = int(entry_text.get())
 
         print(self.list_config[num])
-
 
     def grasp_data(self):
         """
@@ -156,10 +164,12 @@ class Function:
         try:
             # 使用用户输入的数量
             # , filter=self.list_config[5]
-            packets = sniff(prn=packet_callback, count=self.list_config[0])
+            packets = sniff(prn=packet_callback, count=self.list_config[0], filter=self.list_config[5])
         except Scapy_Exception as e:
             print("抓取数据包出现问题", e)
         else:
+            """
+            这里将抓取到的数据包show出来，利用变更输入源的方式
             # 创建一个 StringIO 对象来捕获输出
             string_buffer = StringIO()
             # 将标准输出重定向到 StringIO 对象
@@ -171,9 +181,20 @@ class Function:
             sys.stdout = sys.__stdout__
             # 从 StringIO 对象中获取捕获的输出并转换为字符串
             output_str = string_buffer.getvalue()
-            str_tmp = "成功抓取数据包\n" + output_str[:256]
-            self.set_content(str_tmp)
-            self.display_text()
+            str_tmp = "成功抓取数据包\n" + output_str[:256]"""
+            # 将抓取到的数据包pcap文件再转换成txt文件，显示的内容更加简洁
+            # 读取 pcap 文件
+            packets = rdpcap(self.list_config[1])
+            # 临时存放路径
+            file_path = "data/temp/pcapToTxt.txt"
+            with open(file_path, "w+") as f:
+                for packet in packets:
+                    f.write(str(packet.summary()) + "\n")
+                # 移动文件指针到文件开头以便读取写入的内容
+                f.seek(0)
+                pcap_txt_content = f.read()
+                self.set_content(pcap_txt_content)
+                self.display_text()
 
     def handle_data(self):
         """
@@ -363,6 +384,3 @@ class Function:
             概述：详情见sqlite.function
         """
         pass
-
-
-

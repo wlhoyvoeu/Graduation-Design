@@ -406,6 +406,15 @@ def set_right_frame_database(frame_top, frame_bottom):
         """
             概述：可视化插入数据
         """
+        def select_file_root(window, entry):
+            """
+                概述：选择文件
+                参数：所在窗口
+            """
+            func.set_text(text_display)
+            Function.select_file_root(window, entry)
+
+        # def associated_files()关联文件，没必要设置text控件了，因为关联前肯定要选择文件，此时已经设定过了
         # 创建弹窗
         insert_window = create_window(root, 600, 200)
         insert_window.title("向数据库插入数据")
@@ -414,7 +423,7 @@ def set_right_frame_database(frame_top, frame_bottom):
         entry_insert_pcapfile = tk.Entry(insert_window, width=50)
         entry_insert_pcapfile.grid(row=0, column=1, padx=5, pady=10, sticky="ew")
         button_insert_pcapfile = tk.Button(insert_window, text="浏览",
-                                           command=lambda: func.select_file_root(insert_window, entry_insert_pcapfile))
+                                           command=lambda: select_file_root(insert_window, entry_insert_pcapfile))
         button_insert_pcapfile.grid(row=0, column=2, padx=5, pady=10, sticky="ew")
 
         label_insert_result = tk.Label(insert_window, text="选择算法输出结果")
@@ -422,7 +431,7 @@ def set_right_frame_database(frame_top, frame_bottom):
         entry_insert_result = tk.Entry(insert_window, width=50)
         entry_insert_result.grid(row=1, column=1, padx=5, pady=10, sticky="ew")
         button_insert_result = tk.Button(insert_window, text="浏览",
-                                         command=lambda: func.select_file_root(insert_window, entry_insert_result))
+                                         command=lambda: select_file_root(insert_window, entry_insert_result))
         button_insert_result.grid(row=1, column=2, padx=5, pady=10, sticky="ew")
 
         button_execute = tk.Button(insert_window, text="关联文件",
@@ -435,6 +444,13 @@ def set_right_frame_database(frame_top, frame_bottom):
         """
             概述：可视化删除数据
         """
+        def delete(entry):
+            """
+                概述：删除数据
+                细节：顺带设定text控件，删除结果和与其关联的数据包在数据库中的记录
+            """
+            func.set_text(text_display)
+            func_sqlite.delete_database(entry.get())
         delete_window = create_window(root, 200, 100)
         delete_window.title("删除数据")
         label_delete = tk.Label(delete_window, text="result_file_id")
@@ -442,8 +458,24 @@ def set_right_frame_database(frame_top, frame_bottom):
         entry_delete = tk.Entry(delete_window, width=10)
         entry_delete.grid(row=0, column=1, padx=5, pady=10, sticky="ew")
         button_delete = tk.Button(delete_window, text="删除",
-                                  command=lambda: func_sqlite.delete_database(entry_delete.get()))
+                                  command=lambda: delete(entry_delete))
         button_delete.grid(row=1, column=0, padx=5, pady=10, columnspan=2, sticky="ew")
+
+    def execute_sql(text):
+        """
+            概述：执行sql语句
+            参数：sql_text控件
+        """
+        func.set_text(text_display)
+        func_sqlite.execute_sql(text)
+
+    def view_database():
+        """
+            概述：查找数据
+            参数：
+        """
+        func.set_text(text_display)
+        func_sqlite.view_database()
 
     # 数据库功能实例
     func_sqlite = DatabaseFunc(func)
@@ -468,13 +500,14 @@ def set_right_frame_database(frame_top, frame_bottom):
     label_SQL.grid(row=1, column=0, padx=5, pady=10, sticky="ew")
     text_SQL = tk.Text(frame_bottom, width=5, height=3)
     text_SQL.grid(row=1, column=1, padx=5, pady=10, columnspan=4, sticky="ew")
-    button_SQL = tk.Button(frame_bottom, text="执行", command=lambda: func_sqlite.execute_sql(text_SQL))
+    button_SQL = tk.Button(frame_bottom, text="执行", command=lambda: execute_sql(text_SQL))
     button_SQL.grid(row=1, column=5, padx=5, pady=10, sticky="ew")
     # 快捷指令
     label_quick_instruction = tk.Label(frame_bottom, text="快捷指令")
     label_quick_instruction.grid(row=2, column=0, padx=5, pady=10, sticky="ew")
     # 创建数据库按钮
-    button_create_database = tk.Button(frame_bottom, text="创建数据库",
+    # 可能会出现问题，因为这个函数在text控件打印前，没有设置text控件，如果出问题设置一下就行，不想改了
+    button_create_database = tk.Button(frame_bottom, text="创建数据库链表",
                                        command=lambda: func_sqlite.create_database())
     button_create_database.grid(row=2, column=1, padx=5, pady=10, sticky="ew")
     # 增加数据
@@ -485,7 +518,7 @@ def set_right_frame_database(frame_top, frame_bottom):
     button_delete_database.grid(row=2, column=3, padx=5, pady=10, sticky="ew")
     # 查找数据
     button_view_database = tk.Button(frame_bottom, text="查找数据",
-                                     command=lambda: func_sqlite.view_database())
+                                     command=lambda: view_database())
     button_view_database.grid(row=2, column=4, padx=5, pady=10, columnspan=2, sticky="ew")
 
     # 设置右上角展示框架
