@@ -521,6 +521,7 @@ def MessageSegment(file,ran:int,gap:int)->list:
     :param ran: 起始索引
     :param gap: 间隔的数据包数量
     :return: 返回分割的数据包内容和相应的包长
+    系统开发者注：增加一个返回值acc（准确率）
     """
     # 读取字段划分的文件
     # FieldSegment_File = 'D:\Thesis Information\拆包处理\Web_extend1000.txt'
@@ -620,6 +621,7 @@ def MessageSegment(file,ran:int,gap:int)->list:
     acc = InferPacketlenAcc(real_len,infer_packetlen)
     print("推断包长准确率：")
     print(acc)
-    return packet_content,infer_packetlen
+    # 系统开发者增加一个返回值，用于反馈推断包长的准确率
+    return packet_content,infer_packetlen,acc
 
 

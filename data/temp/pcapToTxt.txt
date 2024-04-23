@@ -1,20 +1,20 @@
-Ether / ARP who has 192.168.0.100 says 192.168.0.1
-None
-Ether / ARP is at 30:c9:ab:33:ce:7f says 192.168.0.100
-None
-Ether / IP / UDP / NBNSHeader / NBNSQueryRequest who has '\\WHY'
-None
-Ether / IP / UDP / NBNSHeader / NBNSQueryRequest who has '\\WHY'
-None
-Ether / IP / UDP / NBNSHeader / NBNSQueryRequest who has '\\WHY'
-None
-Ether / IP / TCP 192.168.0.100:60644 > 118.89.69.244:4443 PA / Raw
-None
-Ether / IP / TCP 192.168.0.100:60644 > 118.89.69.244:4443 PA / Raw
-None
-Ether / IP / TCP 118.89.69.244:4443 > 192.168.0.100:60644 A
-None
-Ether / IP / TCP 118.89.69.244:4443 > 192.168.0.100:60644 PA / Raw
-None
-Ether / IP / TCP 118.89.69.244:4443 > 192.168.0.100:60644 PA / Raw
-None
+Ether / IP / TCP 192.168.0.102:49979 > 36.155.163.117:http_alt PA / Raw
+Ether / IP / TCP 192.168.0.102:50152 > 129.211.23.33:4443 PA / Raw
+Ether / IP / TCP 192.168.0.102:50152 > 129.211.23.33:4443 PA / Raw
+Ether / IP / TCP 192.168.0.102:50152 > 129.211.23.33:4443 PA / Raw
+Ether / IP / TCP 192.168.0.102:60121 > 20.198.162.78:https PA / Raw
+Ether / IP / TCP 192.168.0.102:49976 > 111.31.240.78:http PA / Raw
+Ether / IP / TCP 192.168.0.102:50688 > 52.143.86.214:https PA / Raw
+Ether / IP / TCP 192.168.0.102:50688 > 52.143.86.214:https PA / Raw
+Ether / IP / TCP 192.168.0.102:50688 > 52.143.86.214:https PA / Raw
+Ether / IP / TCP 192.168.0.102:50688 > 52.143.86.214:https PA / Raw
+Ether / IP / TCP 192.168.0.102:50688 > 52.143.86.214:https PA / Raw
+Ether / IP / TCP 192.168.0.102:50688 > 52.143.86.214:https PA / Raw
+Ether / IP / TCP 192.168.0.102:50691 > 13.225.183.104:https PA / Raw
+Ether / IP / TCP 192.168.0.102:50691 > 13.225.183.104:https PA / Raw
+Ether / IP / TCP 192.168.0.102:50691 > 13.225.183.104:https PA / Raw
+Ether / IP / TCP 192.168.0.102:50691 > 13.225.183.104:https PA / Raw
+Ether / IP / TCP 192.168.0.102:50691 > 13.225.183.104:https PA / Raw
+Ether / IP / TCP 192.168.0.102:50691 > 13.225.183.104:https PA / Raw
+Ether / IP / TCP 192.168.0.102:50692 > 76.223.63.197:https PA / Raw
+Ether / IP / TCP 192.168.0.102:50692 > 76.223.63.197:https PA / Raw

@@ -284,13 +284,15 @@ class Function:
                 详情：需要LinearRegression的支持,
                     该函数的运行结果将不会在控制台展示，因为我们重定义了输出
                     后续应该使其能在控制台展示，以提高代码的可维护性
-                返回值：文件路径(输出结果)
+                返回值：文件摘要(输出结果)，原来版本是显示全部内容，需要返回文件地址
             """
             directory = os.getcwd()  # 当前工作的绝对路径
             print("当前的工作路径：", directory)
             file_path = self.list_config[3]
             # 将标准输出重定向到文件
             with open(file_path, 'w') as f:
+                # 输出文件摘要，最后text展示该内容
+                str_summary = ""
                 # 重定向输出
                 sys.stdout = f
                 # 输入文件的地址 如下格式
@@ -305,13 +307,14 @@ class Function:
                 print("输出结果将存放在：", file_path)
                 print('最大长度提取算法输出结果')
 
-                packet_content, infer_len = MS.MessageSegment(file, ran, gap)
+                packet_content, infer_len, acc = MS.MessageSegment(file, ran, gap)
 
                 print('进行下一步的包的数量：')
                 print(len(packet_content))
                 print(len(infer_len))  # 形式为列表，其中列表元素是每条包推测的包长
-                print('推测的包长：')
+                print('推测的包长（字段长度）：')
                 print(infer_len)
+                str_summary = "推断包长的准确率：" + str(acc) + "推测的包长（字段长度）：\n" + str(infer_len) + '\n' + "筛选后的列索引（字段偏移量）：\n"
                 for member in range(1, 5):
                     # 进行ngrams分割
                     ngrams = Ngram.ngram_segment(packet_content, member)  # 形式为列表，其中列表元素是每条包的ngram处理结果
@@ -333,6 +336,7 @@ class Function:
                                                                          infer_len)
                     print("筛选后的列索引(字段偏移量)：")
                     print(right_column)
+                    str_summary = str_summary + "按" + str(member) + "字节划分：\n" + str(right_column) + '\n'
                     # temp = []
                     # temp1 = []
                     # for index in right_column:
@@ -360,7 +364,8 @@ class Function:
 
             # 改变函数间传递的全局路径
             # path_global = file_path
-            return file_path
+            # return file_path 返回文件地址，用于输出全部结果
+            return str_summary  # 返回摘要
 
         def output_result(file_path):
             """
@@ -375,8 +380,14 @@ class Function:
                 # 无需顺带了，反正输出都有文件，数据库到时候直接连接文件即可
 
         preprocessing()
+
+        """
+        这里将文件中所有结果输出，但是我们只需要显示摘要
         file_path = run_LinearRegression()
-        output_result(file_path)
+        output_result(file_path)"""
+        str_summary = run_LinearRegression()
+        self.set_content(str_summary)
+        self.display_text()
         return True
 
     def database_function(self):

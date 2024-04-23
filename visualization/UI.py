@@ -66,6 +66,7 @@ frame_bottom_database = tk.Frame(frame_right)
 # 定义一个窗口线程
 global progress_bar_thread
 
+
 # 启动函数
 def init():
     """
@@ -194,13 +195,13 @@ def show_waiting_window():
     return waiting_window
 
 
-
 def destroy_waiting_window(waiting_window):
     """
         概述：删除等待窗口
         参数：窗口
     """
     waiting_window.destroy()
+
 
 def set_right_frame_grasp(frame_top, frame_bottom):
     """
@@ -249,6 +250,7 @@ def set_right_frame_grasp(frame_top, frame_bottom):
                 将按照用户提供的路径和抓取数据包的数量进行抓取
                 后期可以将协议筛选也加入
         """
+
         def task():
             """
                 概述:将抓取数据包这样的耗时操作放入线程中处理
@@ -266,9 +268,6 @@ def set_right_frame_grasp(frame_top, frame_bottom):
         # 启动子线程执行任务
         t = threading.Thread(target=task)
         t.start()
-
-
-
 
     # main中定义的变量好像有点特殊，应该是全局都可以搜索到
     # 但是在函数外面定义的好像，有点区别
@@ -319,6 +318,7 @@ def set_right_frame_handle(frame_top, frame_bottom):
         概述：设置数据处理的右边框架
         参数：数据处理的右上布局框架，右下布局框架
     """
+
     def save_config(entry_select_packet, entry_path):
         """
             概述：保存处理进程界面的配置
@@ -338,6 +338,7 @@ def set_right_frame_handle(frame_top, frame_bottom):
                 返回值：无需返回值
                 废弃：该功能在func.function中
             """
+
         def task():
             """
                 概述：将解析处理这一耗时操作放到线程中处理
@@ -352,7 +353,6 @@ def set_right_frame_handle(frame_top, frame_bottom):
                 print("大概率权限有问题")
             finally:
                 waiting_window.destroy()
-
 
         waiting_window = show_waiting_window()
         # 启动子线程执行任务
@@ -402,10 +402,12 @@ def set_right_frame_database(frame_top, frame_bottom):
         概述：设置数据库的右边框架
         参数：数据库的右上布局框架，右下布局框架
     """
+
     def insert_database():
         """
             概述：可视化插入数据
         """
+
         def select_file_root(window, entry):
             """
                 概述：选择文件
@@ -444,6 +446,7 @@ def set_right_frame_database(frame_top, frame_bottom):
         """
             概述：可视化删除数据
         """
+
         def delete(entry):
             """
                 概述：删除数据
@@ -451,6 +454,7 @@ def set_right_frame_database(frame_top, frame_bottom):
             """
             func.set_text(text_display)
             func_sqlite.delete_database(entry.get())
+
         delete_window = create_window(root, 200, 100)
         delete_window.title("删除数据")
         label_delete = tk.Label(delete_window, text="result_file_id")
@@ -566,7 +570,7 @@ def button_preprocessing_click(event):
         概述：展示处理进程的界面
         开发者：其实直接调用show_frame作为点击事项即可，但是不想该了，毕竟前面写了那么久，有感情了
     """
-    show_frame(frame_top_handle,frame_bottom_handle)
+    show_frame(frame_top_handle, frame_bottom_handle)
 
 
 def button_database_click(event):
@@ -576,4 +580,3 @@ def button_database_click(event):
         开发者注：其实直接调用show_frame作为点击事项即可，但是不想该了，毕竟前面写了那么久，有感情了
     """
     show_frame(frame_top_database, frame_bottom_database)
-

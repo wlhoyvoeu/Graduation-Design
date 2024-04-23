@@ -76,8 +76,9 @@ def ngram_segment(packets:list,n:int)->list:
                     message_ngrams.append(message[j][0:2 * (n - 1)])
                     # if message_ngrams not in list_ngrams:
                     # if fieldjoint(message_ngrams) != fieldjoint(list_ngrams[-1]):    # 检测当前字段是否已经存在于前一个中
-                    if message_ngrams != list_ngrams[-1]:
-                        list_ngrams.append(message_ngrams)
+                    if list_ngrams:
+                        if message_ngrams != list_ngrams[-1]:
+                            list_ngrams.append(message_ngrams)
                     message_ngrams = []
                 # 取前一字段的后一个字节和本字段的前ngram-1字节
                 message_ngrams.append(message[j - 1][-2:])
