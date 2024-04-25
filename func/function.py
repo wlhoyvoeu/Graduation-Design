@@ -49,11 +49,20 @@ class Function:
     def display_text(self):
         """
             概述：展示text内容
+            细节：清空原有内容后展示
         """
 
         ''' '''
         self.text_display.delete('1.0', 'end')
         self.text_display.insert('1.0', self.content_current)
+
+    def display_text_add(self, content):
+        """
+            概述：展示text内容
+            参数：具体内容
+            细节：在原有内容后添加内容
+        """
+        self.text_display.insert('end', content)
 
     """抓取数据包所需的功能"""
 
@@ -153,19 +162,40 @@ class Function:
             """
             try:
                 # 将抓取到的数据包转换成pcap格式
+                # append-->true追加还是false重写，但是重写只能存在一条数据包了
                 wrpcap(self.list_config[1], packet, append=True)
                 # 将输出结果展示到控制台上
-                print("展示捕获到的数据包：")
-                packet.show()
+                # print("展示捕获到的数据包摘要：")
+                print(str(packet.summary()) + "\n")
+                self.display_text_add(str(packet.summary()) + "\n")
                 return True
             except Scapy_Exception as e:
                 print("处理数据包时出现异常：", e)
                 return False
 
+        # 定义过滤器函数
+        def custom_filter(pkt):
+            """
+                概述：过滤出含有原始数据的数据包
+            """
+            # 检查数据包是否同时包含 Raw 层和 TCP 层
+            if Raw in pkt:
+                return True
+            return False
+
         try:
             # 使用用户输入的数量
             # , filter=self.list_config[5]
-            packets = sniff(prn=packet_callback, count=self.list_config[0], filter=self.list_config[5])
+            # 清空内容
+            self.set_content("正在抓取数据包：(数据包摘要如下)\n")
+            self.display_text()
+            # 清空文件内容，否则wrpcap会不断追加文件，而且不能更改wrpcap的append
+            # 因为该函数功能本身就应该是，将每个数据包追加到文件末尾
+            # 所以我们采取抓取数据包前就清空文件的操作
+            with open(self.list_config[1], "w") as f:
+                pass
+            packets = sniff(prn=packet_callback, count=self.list_config[0], filter=self.list_config[5],
+                            lfilter=custom_filter)
         except Scapy_Exception as e:
             print("抓取数据包出现问题", e)
         else:
@@ -194,6 +224,10 @@ class Function:
                 # 移动文件指针到文件开头以便读取写入的内容
                 f.seek(0)
                 pcap_txt_content = f.read()
+                # 再次移动指针到文件头
+                # w+的功能应该是，从光标位置写入，并且删除后续内容
+                # 但是我们读取文件后，光标在文件末尾，所以成为了追加功能
+                f.seek(0)
                 self.set_content(pcap_txt_content)
                 self.display_text()
 
