@@ -1,7 +1,7 @@
 import threading
 import time
 import tkinter as tk
-from tkinter import filedialog
+from tkinter import filedialog, messagebox
 from func.function import Function
 from sqlite.function import DatabaseFunc
 from tkinter import ttk
@@ -203,6 +203,17 @@ def destroy_waiting_window(waiting_window):
     waiting_window.destroy()
 
 
+def show_message():
+    """
+        概述：消息弹窗
+        废弃：功能有问题，不想改了，后期在说罢
+    """
+    message_box = tk.Tk()
+    message_box.withdraw()  # 隐藏主窗口
+    message_box.after(3000, message_box.destroy)  # 设置定时器，3秒后关闭消息框
+    messagebox.showinfo("提示", "成功配置参数")
+
+
 def set_right_frame_grasp(frame_top, frame_bottom):
     """
         概述：创建抓取数据包的右边框架
@@ -242,6 +253,7 @@ def set_right_frame_grasp(frame_top, frame_bottom):
         func.save_config(0, entry_num)
         func.save_config(1, entry_path)
         func.save_config(5, entry_filter)
+        # show_message()
 
     def grasp_data():
         """
@@ -336,6 +348,7 @@ def set_right_frame_handle(frame_top, frame_bottom):
         """
         func.save_config(2, entry_select_packet)
         func.save_config(3, entry_path)
+        # show_message()
 
     def handle_data():
         """
@@ -494,6 +507,14 @@ def set_right_frame_database(frame_top, frame_bottom):
         func.set_text(text_display)
         func_sqlite.view_database()
 
+    def save_config(num, entry):
+        """
+            概述：保存配置
+            参数：func中config标识；选择数据库控件entry
+        """
+        func_sqlite.save_sqlite_path_config(4, entry)
+        # show_message()
+
     # 数据库功能实例
     func_sqlite = DatabaseFunc(func)
     """设置右上角展示界面"""
@@ -510,7 +531,7 @@ def set_right_frame_database(frame_top, frame_bottom):
     button_select_database.grid(row=0, column=4, padx=5, pady=10, sticky="ew")
     # 保存配置组件
     button_save = tk.Button(frame_bottom, text="保存设置",
-                            command=lambda: func_sqlite.save_sqlite_path_config(4, entry_select_database))
+                            command=lambda: save_config(4, entry_select_database))
     button_save.grid(row=0, column=5, padx=5, pady=10, sticky="ew")
     # SQL语句
     label_SQL = tk.Label(frame_bottom, text="SQL语句")
