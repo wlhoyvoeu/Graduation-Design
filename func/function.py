@@ -87,7 +87,8 @@ class Function:
             directory = os.getcwd()  # 当前工作的绝对路径
             # linux和windows中的路径斜杠好像有点不同
             dir_path = directory + '/data'
-            print("保存路径：", dir_path)
+            print("$$$$$$$$$$$$$")
+            # print("保存路径：", dir_path)
             file_path = filedialog.askopenfilename(
                 initialdir=dir_path,
                 title="选择数据包",
@@ -96,7 +97,7 @@ class Function:
             if file_path:
                 entry_path.delete(0, tk.END)  # 清空文本框内容
                 entry_path.insert(0, file_path)  # 将选中的文件路径插入文本框
-        except IOError  as e:
+        except Exception as e:
             print("文件打开出现问题：", e)
 
     @staticmethod
@@ -290,77 +291,81 @@ class Function:
             print("当前的工作路径：", directory)
             file_path = self.list_config[3]
             # 将标准输出重定向到文件
-            with open(file_path, 'w') as f:
-                # 输出文件摘要，最后text展示该内容
-                str_summary = ""
-                # 重定向输出
-                sys.stdout = f
-                # 输入文件的地址 如下格式
-                # file = 'D:\STUN_2000.txt'
-                # file = '/home/why/workspace/pythonProject/Bfile.txt'
-                # file = path_global  # 'data/Binary/Bfile_int.txt'
-                file = directory + '/data/nemesysOutData/Bfile.txt'
+            try:
+                with open(file_path, 'w') as f:
+                    # 输出文件摘要，最后text展示该内容
+                    str_summary = ""
+                    # 重定向输出
+                    sys.stdout = f
+                    # 输入文件的地址 如下格式
+                    # file = 'D:\STUN_2000.txt'
+                    # file = '/home/why/workspace/pythonProject/Bfile.txt'
+                    # file = path_global  # 'data/Binary/Bfile_int.txt'
+                    file = directory + '/data/nemesysOutData/Bfile.txt'
 
-                ran = 0  # 数据集的第i组
-                gap = 50  # 每组的数据包数量
+                    ran = 0  # 数据集的第i组
+                    gap = 50  # 每组的数据包数量
 
-                print("输出结果将存放在：", file_path)
-                print('最大长度提取算法输出结果')
+                    print("输出结果将存放在：", file_path)
+                    print('最大长度提取算法输出结果')
 
-                packet_content, infer_len, acc = MS.MessageSegment(file, ran, gap)
+                    packet_content, infer_len, acc = MS.MessageSegment(file, ran, gap)
 
-                print('进行下一步的包的数量：')
-                print(len(packet_content))
-                print(len(infer_len))  # 形式为列表，其中列表元素是每条包推测的包长
-                print('推测的包长（字段长度）：')
-                print(infer_len)
-                str_summary = "推断包长的准确率：" + str(acc) + "推测的包长（字段长度）：\n" + str(infer_len) + '\n' + "筛选后的列索引（字段偏移量）：\n"
-                for member in range(1, 5):
-                    # 进行ngrams分割
-                    ngrams = Ngram.ngram_segment(packet_content, member)  # 形式为列表，其中列表元素是每条包的ngram处理结果
-                    print('ngrams的内容：')
-                    # for i in range(len(ngrams)):
-                    #     print(ngrams[i])
-                    print(ngrams[0])
-                    print(ngrams[1])
+                    print('进行下一步的包的数量：')
+                    print(len(packet_content))
+                    print(len(infer_len))  # 形式为列表，其中列表元素是每条包推测的包长
+                    print('推测的包长（字段长度）：')
+                    print(infer_len)
+                    str_summary = "推断包长的准确率：" + str(acc) + "推测的包长（字段长度）：\n" + str(infer_len) + '\n' + "筛选后的列索引（字段偏移量）：\n"
+                    for member in range(1, 5):
+                        # 进行ngrams分割
+                        ngrams = Ngram.ngram_segment(packet_content, member)  # 形式为列表，其中列表元素是每条包的ngram处理结果
+                        print('ngrams的内容：')
+                        # for i in range(len(ngrams)):
+                        #     print(ngrams[i])
+                        print(ngrams[0])
+                        print(ngrams[1])
 
-                    # 记录最大维度
-                    max_gramdimension = LR.MaxDimension(ngrams)
+                        # 记录最大维度
+                        max_gramdimension = LR.MaxDimension(ngrams)
 
-                    # 建立初始方程
-                    primary_equation = LR.PrimaryEquation(ngrams,
-                                                          max_gramdimension)  # 记录每条数据包的十进制字段。 形式形如[ [f11,f12,...,f1n],...,[fi1,fi2,...,fin],[fm1,fm2,...,fmn] ]
+                        # 建立初始方程
+                        primary_equation = LR.PrimaryEquation(ngrams,
+                                                              max_gramdimension)  # 记录每条数据包的十进制字段。 形式形如[ [f11,f12,...,f1n],...,[fi1,fi2,...,fin],[fm1,fm2,...,fmn] ]
 
-                    # 降维
-                    final_equation, right_column = LR.DimensionReduction(primary_equation, max_gramdimension, ngrams,
-                                                                         infer_len)
-                    print("筛选后的列索引(字段偏移量)：")
-                    print(right_column)
-                    str_summary = str_summary + "按" + str(member) + "字节划分：\n" + str(right_column) + '\n'
-                    # temp = []
-                    # temp1 = []
-                    # for index in right_column:
-                    #     temp.append(primary_equation[0][index])
-                    #     temp1.append(primary_equation[-1][index])
-                    # print("筛选后的列的内容")
-                    # print(temp)
-                    # print(temp1)
+                        # 降维
+                        final_equation, right_column = LR.DimensionReduction(primary_equation, max_gramdimension, ngrams,
+                                                                             infer_len)
+                        print("筛选后的列索引(字段偏移量)：")
+                        print(right_column)
+                        str_summary = str_summary + "按" + str(member) + "字节划分：\n" + str(right_column) + '\n'
+                        # temp = []
+                        # temp1 = []
+                        # for index in right_column:
+                        #     temp.append(primary_equation[0][index])
+                        #     temp1.append(primary_equation[-1][index])
+                        # print("筛选后的列的内容")
+                        # print(temp)
+                        # print(temp1)
 
-                    # 解方程
-                    np.set_printoptions(
-                        formatter={'all': lambda x: str(F(x).limit_denominator())})  # 设置输出数据格式 使其输出分数形式的结果
-                    A = np.array(final_equation, dtype='float')
-                    constant = []
-                    for i in range(len(ngrams)):
-                        constant.append(0)
-                    constant = np.array(constant)
-                    X = LR.mySolve(A, constant)
-                    print('第' + str(member) + 'grams情况：')
-                    print("方程组的解：")
-                    print(X)
-                    print('----------------')
-            # 恢复标准输出
-            sys.stdout = sys.__stdout__
+                        # 解方程
+                        np.set_printoptions(
+                            formatter={'all': lambda x: str(F(x).limit_denominator())})  # 设置输出数据格式 使其输出分数形式的结果
+                        A = np.array(final_equation, dtype='float')
+                        constant = []
+                        for i in range(len(ngrams)):
+                            constant.append(0)
+                        constant = np.array(constant)
+                        X = LR.mySolve(A, constant)
+                        print('第' + str(member) + 'grams情况：')
+                        print("方程组的解：")
+                        print(X)
+                        print('----------------')
+            except Exception as e:
+                print("算法解析出错", e)
+            finally:
+                # 恢复标准输出
+                sys.stdout = sys.__stdout__
 
             # 改变函数间传递的全局路径
             # path_global = file_path
@@ -379,13 +384,17 @@ class Function:
                 # 顺带将结果输出到数据库中
                 # 无需顺带了，反正输出都有文件，数据库到时候直接连接文件即可
 
-        preprocessing()
+
 
         """
         这里将文件中所有结果输出，但是我们只需要显示摘要
         file_path = run_LinearRegression()
         output_result(file_path)"""
-        str_summary = run_LinearRegression()
+        try:
+            preprocessing()
+            str_summary = run_LinearRegression()
+        except ValueError as e:
+            str_summary = "解析错误，可能数据包有问题。\n"
         self.set_content(str_summary)
         self.display_text()
         return True

@@ -26,9 +26,9 @@ frame_left = tk.Frame(root, bg="lightblue")
 # 创建右侧Frame
 frame_right = tk.Frame(root, bg="lightgreen")
 # 创建上半部分的子框架
-frame_right_top = tk.Frame(frame_right, bg='red')
+frame_right_top = tk.Frame(frame_right, bg="white")
 # 创建下半部分的子框架
-frame_right_bottom = tk.Frame(frame_right, bg='yellow')
+frame_right_bottom = tk.Frame(frame_right)
 
 '''定义组件'''
 # 抓取界面
@@ -52,13 +52,13 @@ func = Function()
             另一部分用于点击按钮时，将布局展示出来
 """
 # 在这创建三个右上部分的框架，用于放置text控件
-frame_top_grasp = tk.Frame(frame_right)
-frame_top_handle = tk.Frame(frame_right)
-frame_top_database = tk.Frame(frame_right)
+frame_top_grasp = tk.Frame(frame_right_top)
+frame_top_handle = tk.Frame(frame_right_top)
+frame_top_database = tk.Frame(frame_right_top)
 # 右下角框架
-frame_bottom_grasp = tk.Frame(frame_right)
-frame_bottom_handle = tk.Frame(frame_right)
-frame_bottom_database = tk.Frame(frame_right)
+frame_bottom_grasp = tk.Frame(frame_right_bottom)
+frame_bottom_handle = tk.Frame(frame_right_bottom)
+frame_bottom_database = tk.Frame(frame_right_bottom)
 # 运行错误的，只是为了暂时观看方便
 # set_right_top_frame(frame_top_grasp)
 # 我们将设置框架放在init中
@@ -276,38 +276,49 @@ def set_right_frame_grasp(frame_top, frame_bottom):
     """设置右下角组件"""
     # 设置抓取数据包的数量组件
     label_num = tk.Label(frame_bottom, text="抓取数据包的数量:")
-    label_num.grid(row=0, column=0, padx=5, pady=10, sticky="ew")
+    label_num.grid(row=0, column=0, padx=5, pady=8, sticky="ew")
     entry_num = tk.Entry(frame_bottom, width=10)
-    entry_num.grid(row=0, column=1, padx=5, pady=10, sticky="ew")
+    entry_num.grid(row=0, column=1, padx=5, pady=8, columnspan=2, sticky="ew")
     # 设置抓取数据包的过滤条件
     label_filter = tk.Label(frame_bottom, text="过滤条件")
-    label_filter.grid(row=0, column=2, padx=5, pady=10, sticky="ew")
+    label_filter.grid(row=1, column=0, padx=5, pady=8, sticky="ew")
     entry_filter = tk.Entry(frame_bottom, width=10)
-    entry_filter.grid(row=0, column=3, padx=5, pady=10, sticky="ew")
+    entry_filter.grid(row=1, column=1, padx=5, pady=8, columnspan=4, sticky="ew")
     # 设置保存pcap文件路径组件
     label_path = tk.Label(frame_bottom, text="保存路径:")
-    label_path.grid(row=1, column=0, padx=5, pady=10, sticky="ew")
+    label_path.grid(row=2, column=0, padx=5, pady=8, sticky="ew")
     entry_path = tk.Entry(frame_bottom, width=55)
-    entry_path.grid(row=1, column=1, padx=5, pady=10, columnspan=3, sticky="ew")
+    entry_path.grid(row=2, column=1, padx=5, pady=8, columnspan=5, sticky="ew")
     button_browse = tk.Button(frame_bottom, text="浏览", command=lambda: save_file(entry_path))
-    button_browse.grid(row=1, column=4, padx=5, pady=10, sticky="ew")
+    button_browse.grid(row=2, column=6, padx=5, pady=8, sticky="ew")
     # 废弃：button_browse.bind('<ButtonRelease-1>', select_file)
     # 保存配置组件
     button_save = tk.Button(frame_bottom, text="保存设置",
                             command=lambda: save_config(entry_num, entry_path, entry_filter))
-    button_save.grid(row=2, column=0, padx=5, pady=10, sticky="ew")
+    button_save.grid(row=3, column=0, padx=5, pady=8, sticky="ew")
     # 抓取数据包
     button_graspData = tk.Button(frame_bottom, text='抓取数据包', command=lambda: grasp_data())
-    button_graspData.grid(row=2, column=1, padx=5, pady=10, columnspan=4, sticky="ew")
+    button_graspData.grid(row=3, column=1, padx=5, pady=8, columnspan=6, sticky="ew")
     # 创建一个label用于提示
     # label_cue = tk.Label(frame_bottom, text="注意:请在数据库板块设置数据库, 默认xxx")
     # label_cue.grid(row=4, column=0, padx=5, pady=10, columnspan=3, sticky="ew")
 
     # 设置右上角展示框架
-    default_text = "功能介绍：\n" \
-                   "\t请设置抓取文件的保存路径\n" \
-                   "\t请设置抓取数据包的数量\n" \
-                   "\t请设置数据库（默认xxx）\n"
+    default_text = ("功能介绍：\n"
+                    "\t本模块将根据你设定的过滤条件和数量抓取数据包，并储存为pcap文件\n"
+                    "配置需求：\n"
+                    "\t请设置抓取数据包的数量\n"
+                    "\t请设置过滤条件\n"
+                    "\t请设置抓取文件的保存路径\n"
+                    "\t注意保存设置\n"
+                    "过滤规则: \n"
+                    "\t过滤源地址：src host 192.168.1.1\n"
+                    "\t过滤目的地址：dst host 192.168.1.1\n"
+                    "\t过滤协议：tcp\n"
+                    "\t过滤源端口：src port 50152\n"
+                    "\t过滤目的端口：dst port 80\n"
+                    "\t(多个过滤条件可以用and叠加)\n")
+
     func.set_text(text_display)
     func.set_content(default_text)
     func.display_text()
@@ -369,6 +380,7 @@ def set_right_frame_handle(frame_top, frame_bottom):
     entry_select_packet.grid(row=0, column=1, padx=5, pady=10, sticky="ew")
     button_select_packet = tk.Button(frame_bottom, text="浏览",
                                      command=lambda: Function.select_file(entry_select_packet))
+    # command=functools.partial(Function.select_file, entry_select_packet)
     button_select_packet.grid(row=0, column=2, padx=5, pady=10, sticky="ew")
     # 设置保存pcap文件路径组件
     label_path = tk.Label(frame_bottom, text="保存路径:")
@@ -388,10 +400,11 @@ def set_right_frame_handle(frame_top, frame_bottom):
     # label_cue = tk.Label(frame_bottom, text="注意:请在数据库板块设置数据库, 默认xxx")
     # label_cue.grid(row=4, column=0, padx=5, pady=10, columnspan=3, sticky="ew")
     # 设置右上角展示框架
-    default_text = "功能介绍：\n" \
-                   "\t请选择想要处理的数据包\n" \
-                   "\t请设置处理结果保存路径\n" \
-                   "\t请设置数据库（默认xxx）\n"
+    default_text = ("功能介绍：\n"
+                    "\t本模块将从抓取的大量数据包中，推断出可能的字段长度和字段偏移量\n"
+                    "配置需求：\n"
+                    "\t请选择想要处理的数据包\n"
+                    "\t请设置处理结果保存路径\n")
     func.set_text(text_display)
     func.set_content(default_text)
     func.display_text()
@@ -526,13 +539,17 @@ def set_right_frame_database(frame_top, frame_bottom):
     button_view_database.grid(row=2, column=4, padx=5, pady=10, columnspan=2, sticky="ew")
 
     # 设置右上角展示框架
-    default_text = "功能介绍：\n" \
-                   "\t请设置数据库\n" \
-                   "\t数据库快捷指令：创增删查\n" \
-                   "\t\t创建表格：创建算法所需的两张表格\n" \
-                   "\t\t添加数据：将本次运算结果和数据包关联到数据库中\n" \
-                   "\t\t删除数据：\n" \
-                   "\t\t查看数据：查看数据库（包含表格具体内容）\n"
+    default_text = ("功能介绍：\n"
+                    "\t提供快捷指令代替常用的数据库操作\n"
+                    "\t提供sql语句接口\n"                    
+                    "配置需求：\n"
+                    "\t请设置数据库\n"
+                    "快捷指令：\n"
+                    "\t创建表格：创建算法所需的两张表格\n"
+                    "\t添加数据：将本次运算结果和数据包关联到数据库中\n"
+                    "\t删除数据：选择不需要的运算结果，会自动关联删除数据包记录\n"
+                    "\t查看数据：查看数据库（包含表格具体内容）\n"
+                    )
     func.set_text(text_display)
     func.set_content(default_text)
     func.display_text()
@@ -552,8 +569,16 @@ def show_frame(frame_top, frame_bottom):
     frame_bottom_handle.place_forget()
     frame_bottom_database.place_forget()
     # 展示frame
-    frame_top.place(relx=0, rely=0, relwidth=1, relheight=0.70)
-    frame_bottom.place(relx=0, rely=0.70, relwidth=1, relheight=0.3)
+    frame_top.place(relx=0, rely=0, relwidth=1, relheight=1)
+    frame_bottom.place(relx=0, rely=0, relwidth=1, relheight=1)
+    """
+    两种布局都可以实现
+    frame_top_grasp.pack_forget()
+    frame_bottom_grasp.pack_forget()
+    frame_top_handle.pack_forget()
+    frame_bottom_handle.pack_forget()
+    frame_top.pack(fill=tk.BOTH, expand=True)
+    frame_bottom.pack(fill=tk.BOTH, expand=True)"""
 
 
 def button_graspData_click(event):
