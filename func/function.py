@@ -350,7 +350,7 @@ class Function:
                     print(len(infer_len))  # 形式为列表，其中列表元素是每条包推测的包长
                     print('推测的包长（字段长度）：')
                     print(infer_len)
-                    str_summary = "推断包长的准确率：" + str(acc) + "推测的包长（字段长度）：\n" + str(infer_len) + '\n' + "筛选后的列索引（字段偏移量）：\n"
+                    str_summary = "推断包长的准确率：" + str(acc) + '\n' + "推测的包长（字段长度）：\n" + str(infer_len) + '\n' + "筛选后的列索引（字段偏移量）：\n"
                     for member in range(1, 5):
                         # 进行ngrams分割
                         ngrams = Ngram.ngram_segment(packet_content, member)  # 形式为列表，其中列表元素是每条包的ngram处理结果
@@ -424,11 +424,14 @@ class Function:
         这里将文件中所有结果输出，但是我们只需要显示摘要
         file_path = run_LinearRegression()
         output_result(file_path)"""
-        try:
+        """try:
             preprocessing()
             str_summary = run_LinearRegression()
         except ValueError as e:
             str_summary = "解析错误，可能数据包有问题。\n"
+            print(str_summary, e)"""
+        preprocessing()
+        str_summary = run_LinearRegression()
         self.set_content(str_summary)
         self.display_text()
         return True

@@ -4,7 +4,7 @@ from scapy.all import *
 # packets = rdpcap(func.list_config[1])
 packets = rdpcap("data/pcapfile/8_9.pcap")
 # packets = rdpcap("Rose/dataset/gh0st/gh0st.pcapng")
-# packets = rdpcap("Rose/dataset/QQ/qq.pcapng")
+packets = rdpcap("Rose/dataset/QQ/qq.pcapng")
 # packets = rdpcap("Rose/dataset/STUN/STUN.pcapng")
 # packets = rdpcap("Rose/dataset/TLS/TLS.pcapng")
 # packets = rdpcap("Rose/dataset/websocket/web_2000.pcapng")
