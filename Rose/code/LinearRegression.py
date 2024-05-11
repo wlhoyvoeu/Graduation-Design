@@ -201,7 +201,7 @@ with open('output.txt', 'w') as f:
     ran = 0  # 数据集的第i组
     gap = 69  # 每组的数据包数量
 
-    packet_content, infer_len = MS.MessageSegment(file, ran, gap)
+    packet_content, infer_len, acc = MS.MessageSegment(file, ran, gap)
 
     print('进行下一步的包的数量：')
     print(len(packet_content))

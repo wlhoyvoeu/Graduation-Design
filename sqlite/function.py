@@ -65,7 +65,7 @@ class DatabaseFunc:
                 str_row = str(row) + '\n'
                 text_content += str_row
             print("成功创建表格")
-            text_content = "成功创建表格\n" + text_content
+            text_content = "成功创建链表\n" + text_content
             self.func.set_content(text_content)
             self.func.display_text()
             conn.commit()
@@ -164,7 +164,8 @@ class DatabaseFunc:
         # 定义查询语句
         try:
             cursor.execute(
-                "DELETE FROM file_capturePackets WHERE id = (SELECT file_capturePackets_id FROM file_out_result WHERE id = ?)",
+                "DELETE FROM file_capturePackets WHERE id = "
+                "(SELECT file_capturePackets_id FROM file_out_result WHERE id = ?)",
                 (result_id,))
             cursor.execute("DELETE FROM file_out_result WHERE id = ?", (result_id,))
 
@@ -227,7 +228,7 @@ class DatabaseFunc:
             rows = cursor.fetchall()
             print("\nQuery result:\n")
             if index == 0:
-                text_content += "数据库查询结果：\n"
+                text_content += "数据库链表查询结果：\n"
             elif index == 1:
                 text_content += "pcap文件列表如下：\n"
             elif index == 2:
@@ -272,6 +273,10 @@ class DatabaseFunc:
             print("出现异常：", e)
             text_content = "请检查sql语句是否正确：\n" + str(e)
             self.func.set_content(text_content)
+            self.func.display_text()
+        except sqlite3.OperationalError as e:
+            print("出现异常：", e)
+            self.func.set_content(str(e))
             self.func.display_text()
 
         """

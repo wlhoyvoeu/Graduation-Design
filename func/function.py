@@ -3,11 +3,15 @@ import tkinter as tk
 from tkinter import filedialog
 from scapy.all import *
 from io import StringIO
+
+from scapy.layers.dns import DNS
+
 import Rose.code.NgramSegment as Ngram
 import Rose.code.MessageSegment as MS
 import Rose.code.LinearRegression as LR
 import numpy as np
 from fractions import Fraction as F
+
 
 # 感觉可以将所有的控件，都放在一个列表中一并传入？？？
 # 其实该函数的所有功能基本都可以静态，因为不依赖实例
@@ -26,12 +30,13 @@ class Function:
             list_config[4]--->数据库的路径
             list_config[5]--->抓取数据包的过滤条件
         """
-        self.list_config = [-1, '', '', '', '', '']   # 配置以列表的形式存储
+        self.list_config = [-1, '', '', '', '', '']  # 配置以列表的形式存储
         self.content_default = None
         self.content_current = None
         self.text_display = None
 
     """设置text的功能"""
+
     def set_text(self, text_display):
         self.text_display = text_display
 
@@ -47,13 +52,23 @@ class Function:
     def display_text(self):
         """
             概述：展示text内容
+            细节：清空原有内容后展示
         """
 
         ''' '''
         self.text_display.delete('1.0', 'end')
         self.text_display.insert('1.0', self.content_current)
 
+    def display_text_add(self, content):
+        """
+            概述：展示text内容
+            参数：具体内容
+            细节：在原有内容后添加内容
+        """
+        self.text_display.insert('end', content)
+
     """抓取数据包所需的功能"""
+
     @staticmethod
     def save_file(entry_path):
         """
@@ -80,18 +95,22 @@ class Function:
             概述：选择文件
             参数：关于用户选择路径的entry控件
         """
-        directory = os.getcwd()  # 当前工作的绝对路径
-        # linux和windows中的路径斜杠好像有点不同
-        dir_path = directory + '/data'
-        print("保存路径：", dir_path)
-        file_path = filedialog.askopenfilename(
-            initialdir=dir_path,
-            title="选择数据包",
-            filetypes=(("pcap files", "*.pcap"), ("database files", "*.db"), ("All files", "*.*"))
-        )
-        if file_path:
-            entry_path.delete(0, tk.END)  # 清空文本框内容
-            entry_path.insert(0, file_path)  # 将选中的文件路径插入文本框
+        try:
+            directory = os.getcwd()  # 当前工作的绝对路径
+            # linux和windows中的路径斜杠好像有点不同
+            dir_path = directory + '/data'
+            print("$$$$$$$$$$$$$")
+            # print("保存路径：", dir_path)
+            file_path = filedialog.askopenfilename(
+                initialdir=dir_path,
+                title="选择数据包",
+                filetypes=(("pcap files", "*.pcap"), ("database files", "*.db"), ("All files", "*.*"))
+            )
+            if file_path:
+                entry_path.delete(0, tk.END)  # 清空文本框内容
+                entry_path.insert(0, file_path)  # 将选中的文件路径插入文本框
+        except Exception as e:
+            print("文件打开出现问题：", e)
 
     @staticmethod
     def select_file_root(root, entry_path):
@@ -103,32 +122,34 @@ class Function:
                 但是应为使用的过多修改起来太麻烦，在此直接写个新方法
                 这里和java略有区别，不能直接更改参数，重写函数
         """
-        directory = os.getcwd()  # 当前工作的绝对路径
-        # linux和windows中的路径斜杠好像有点不同
-        dir_path = directory + '/data'
-        print("保存路径：", dir_path)
-        file_path = filedialog.askopenfilename(
-            parent=root,
-            initialdir=dir_path,
-            title="选择数据包",
-            filetypes=(("pcap files", "*.pcap"), ("database files", "*.db"), ("All files", "*.*"))
-        )
-        if file_path:
-            entry_path.delete(0, tk.END)  # 清空文本框内容
-            entry_path.insert(0, file_path)  # 将选中的文件路径插入文本框
+        try:
+            directory = os.getcwd()  # 当前工作的绝对路径
+            # linux和windows中的路径斜杠好像有点不同
+            dir_path = directory + '/data'
+            print("保存路径：", dir_path)
+            file_path = filedialog.askopenfilename(
+                parent=root,
+                initialdir=dir_path,
+                title="选择数据包",
+                filetypes=(("pcap files", "*.pcap"), ("database files", "*.db"), ("All files", "*.*"))
+            )
+            if file_path:
+                entry_path.delete(0, tk.END)  # 清空文本框内容
+                entry_path.insert(0, file_path)  # 将选中的文件路径插入文本框
+        except ValueError as e:
+            print("文件打开出现问题：", e)
 
     def save_config(self, num, entry_text):
         """
             概述：保存配置
             细节：将获取两个输入框的内容，并保存
         """
-        if num:# num!=0
+        if num:  # num!=0
             self.list_config[num] = entry_text.get()
         else:
             self.list_config[num] = int(entry_text.get())
 
         print(self.list_config[num])
-
 
     def grasp_data(self):
         """
@@ -144,22 +165,50 @@ class Function:
             """
             try:
                 # 将抓取到的数据包转换成pcap格式
+                # append-->true追加还是false重写，但是重写只能存在一条数据包了
                 wrpcap(self.list_config[1], packet, append=True)
                 # 将输出结果展示到控制台上
-                print("展示捕获到的数据包：")
-                packet.show()
+                # print("展示捕获到的数据包摘要：")
+                print(str(packet.summary()) + "\n")
+                self.display_text_add(str(packet.summary()) + "\n")
                 return True
             except Scapy_Exception as e:
                 print("处理数据包时出现异常：", e)
                 return False
 
+        # 定义过滤器函数
+        def custom_filter(pkt):
+            """
+                概述：过滤出含有原始数据的数据包
+            """
+            # 检查数据包是否同时包含 Raw 层和 TCP 层
+
+            # 抓取的数据包必须包含数据
+            # 这里强制要求抓取的数据包必须含有数据
+            # 但是这里抓取的数据理论上应该与解析函数保持一致
+            # 能解析的函数在这里都能抓取才对
+            if Raw in pkt:
+                return True
+            return False
+
         try:
             # 使用用户输入的数量
             # , filter=self.list_config[5]
-            packets = sniff(prn=packet_callback, count=self.list_config[0])
+            # 清空内容
+            self.set_content("正在抓取数据包：(数据包摘要如下)\n")
+            self.display_text()
+            # 清空文件内容，否则wrpcap会不断追加文件，而且不能更改wrpcap的append
+            # 因为该函数功能本身就应该是，将每个数据包追加到文件末尾
+            # 所以我们采取抓取数据包前就清空文件的操作
+            with open(self.list_config[1], "w") as f:
+                pass
+            packets = sniff(prn=packet_callback, count=self.list_config[0], filter=self.list_config[5],
+                            lfilter=custom_filter)
         except Scapy_Exception as e:
             print("抓取数据包出现问题", e)
         else:
+            """
+            这里将抓取到的数据包show出来，利用变更输入源的方式
             # 创建一个 StringIO 对象来捕获输出
             string_buffer = StringIO()
             # 将标准输出重定向到 StringIO 对象
@@ -171,9 +220,23 @@ class Function:
             sys.stdout = sys.__stdout__
             # 从 StringIO 对象中获取捕获的输出并转换为字符串
             output_str = string_buffer.getvalue()
-            str_tmp = "成功抓取数据包\n" + output_str[:256]
-            self.set_content(str_tmp)
-            self.display_text()
+            str_tmp = "成功抓取数据包\n" + output_str[:256]"""
+            # 将抓取到的数据包pcap文件再转换成txt文件，显示的内容更加简洁
+            # 读取 pcap 文件
+            packets = rdpcap(self.list_config[1])
+            # 临时存放路径
+            file_path = "data/temp/pcapToTxt.txt"
+            with open(file_path, "w+") as f:
+                for packet in packets:
+                    f.write(str(packet.summary()) + "\n")
+                # 移动文件指针到文件开头以便读取写入的内容
+                f.seek(0)
+                pcap_txt_content = f.read()
+                # 如果发现测试时，会不断向该文件中追加数据，注意问题并不在这
+                # 这里是将pcap->摘要->输出，所以问题只可能是pcap文件有问题
+                # 回溯到抓取数据包时的wrpcap，就是不断向文件中追加数据
+                self.set_content(pcap_txt_content)
+                self.display_text()
 
     def handle_data(self):
         """
@@ -263,83 +326,93 @@ class Function:
                 详情：需要LinearRegression的支持,
                     该函数的运行结果将不会在控制台展示，因为我们重定义了输出
                     后续应该使其能在控制台展示，以提高代码的可维护性
-                返回值：文件路径(输出结果)
+                返回值：文件摘要(输出结果)，原来版本是显示全部内容，需要返回文件地址
             """
             directory = os.getcwd()  # 当前工作的绝对路径
             print("当前的工作路径：", directory)
             file_path = self.list_config[3]
             # 将标准输出重定向到文件
-            with open(file_path, 'w') as f:
-                # 重定向输出
-                sys.stdout = f
-                # 输入文件的地址 如下格式
-                # file = 'D:\STUN_2000.txt'
-                # file = '/home/why/workspace/pythonProject/Bfile.txt'
-                # file = path_global  # 'data/Binary/Bfile_int.txt'
-                file = directory + '/data/nemesysOutData/Bfile.txt'
+            try:
+                with open(file_path, 'w') as f:
+                    # 输出文件摘要，最后text展示该内容
+                    str_summary = ""
+                    # 重定向输出
+                    sys.stdout = f
+                    # 输入文件的地址 如下格式
+                    # file = 'D:\STUN_2000.txt'
+                    # file = '/home/why/workspace/pythonProject/Bfile.txt'
+                    # file = path_global  # 'data/Binary/Bfile_int.txt'
+                    file = directory + '/data/nemesysOutData/Bfile.txt'
 
-                ran = 0  # 数据集的第i组
-                gap = 50  # 每组的数据包数量
+                    ran = 0  # 数据集的第i组
+                    gap = 50  # 每组的数据包数量
 
-                print("输出结果将存放在：", file_path)
-                print('最大长度提取算法输出结果')
+                    print("输出结果将存放在：", file_path)
+                    print('最大长度提取算法输出结果')
 
-                packet_content, infer_len = MS.MessageSegment(file, ran, gap)
+                    packet_content, infer_len, acc = MS.MessageSegment(file, ran, gap)
 
-                print('进行下一步的包的数量：')
-                print(len(packet_content))
-                print(len(infer_len))  # 形式为列表，其中列表元素是每条包推测的包长
-                print('推测的包长：')
-                print(infer_len)
-                for member in range(1, 5):
-                    # 进行ngrams分割
-                    ngrams = Ngram.ngram_segment(packet_content, member)  # 形式为列表，其中列表元素是每条包的ngram处理结果
-                    print('ngrams的内容：')
-                    # for i in range(len(ngrams)):
-                    #     print(ngrams[i])
-                    print(ngrams[0])
-                    print(ngrams[1])
+                    print('进行下一步的包的数量：')
+                    print(len(packet_content))
+                    print(len(infer_len))  # 形式为列表，其中列表元素是每条包推测的包长
+                    print('推测的包长（字段长度）：')
+                    print(infer_len)
+                    str_summary = "推断包长的准确率：" + str(acc) + '\n' + "推测的包长（字段长度）：\n" + str(infer_len) + '\n' + "筛选后的列索引（字段偏移量）：\n"
+                    for member in range(1, 5):
+                        # 进行ngrams分割
+                        ngrams = Ngram.ngram_segment(packet_content, member)  # 形式为列表，其中列表元素是每条包的ngram处理结果
+                        print('ngrams的内容：')
+                        # for i in range(len(ngrams)):
+                        #     print(ngrams[i])
+                        print(ngrams[0])
+                        print(ngrams[1])
 
-                    # 记录最大维度
-                    max_gramdimension = LR.MaxDimension(ngrams)
+                        # 记录最大维度
+                        max_gramdimension = LR.MaxDimension(ngrams)
 
-                    # 建立初始方程
-                    primary_equation = LR.PrimaryEquation(ngrams,
-                                                          max_gramdimension)  # 记录每条数据包的十进制字段。 形式形如[ [f11,f12,...,f1n],...,[fi1,fi2,...,fin],[fm1,fm2,...,fmn] ]
+                        # 建立初始方程
+                        primary_equation = LR.PrimaryEquation(ngrams,
+                                                              max_gramdimension)  # 记录每条数据包的十进制字段。 形式形如[ [f11,f12,...,f1n],...,[fi1,fi2,...,fin],[fm1,fm2,...,fmn] ]
 
-                    # 降维
-                    final_equation, right_column = LR.DimensionReduction(primary_equation, max_gramdimension, ngrams,
-                                                                         infer_len)
-                    print("筛选后的列索引(字段偏移量)：")
-                    print(right_column)
-                    # temp = []
-                    # temp1 = []
-                    # for index in right_column:
-                    #     temp.append(primary_equation[0][index])
-                    #     temp1.append(primary_equation[-1][index])
-                    # print("筛选后的列的内容")
-                    # print(temp)
-                    # print(temp1)
+                        # 降维
+                        final_equation, right_column = LR.DimensionReduction(primary_equation, max_gramdimension, ngrams,
+                                                                             infer_len)
+                        print("筛选后的列索引(字段偏移量)：")
+                        print(right_column)
+                        str_summary = str_summary + "按" + str(member) + "字节划分：\n" + str(right_column) + '\n'
+                        # temp = []
+                        # temp1 = []
+                        # for index in right_column:
+                        #     temp.append(primary_equation[0][index])
+                        #     temp1.append(primary_equation[-1][index])
+                        # print("筛选后的列的内容")
+                        # print(temp)
+                        # print(temp1)
 
-                    # 解方程
-                    np.set_printoptions(
-                        formatter={'all': lambda x: str(F(x).limit_denominator())})  # 设置输出数据格式 使其输出分数形式的结果
-                    A = np.array(final_equation, dtype='float')
-                    constant = []
-                    for i in range(len(ngrams)):
-                        constant.append(0)
-                    constant = np.array(constant)
-                    X = LR.mySolve(A, constant)
-                    print('第' + str(member) + 'grams情况：')
-                    print("方程组的解：")
-                    print(X)
-                    print('----------------')
-            # 恢复标准输出
-            sys.stdout = sys.__stdout__
+                        # 解方程
+                        np.set_printoptions(
+                            formatter={'all': lambda x: str(F(x).limit_denominator())})  # 设置输出数据格式 使其输出分数形式的结果
+                        A = np.array(final_equation, dtype='float')
+                        constant = []
+                        for i in range(len(ngrams)):
+                            constant.append(0)
+                        constant = np.array(constant)
+                        X = LR.mySolve(A, constant)
+                        print('第' + str(member) + 'grams情况：')
+                        print("方程组的解：")
+                        print(X)
+                        print('----------------')
+            except Exception as e:
+                # 出现I/O operation on closed file.是因为更改的文件控制流异常关闭，所以无法打印
+                print("算法解析出错", e)
+            finally:
+                # 恢复标准输出
+                sys.stdout = sys.__stdout__
 
             # 改变函数间传递的全局路径
             # path_global = file_path
-            return file_path
+            # return file_path 返回文件地址，用于输出全部结果
+            return str_summary  # 返回摘要
 
         def output_result(file_path):
             """
@@ -353,9 +426,22 @@ class Function:
                 # 顺带将结果输出到数据库中
                 # 无需顺带了，反正输出都有文件，数据库到时候直接连接文件即可
 
-        preprocessing()
+
+
+        """
+        这里将文件中所有结果输出，但是我们只需要显示摘要
         file_path = run_LinearRegression()
-        output_result(file_path)
+        output_result(file_path)"""
+        """try:
+            preprocessing()
+            str_summary = run_LinearRegression()
+        except ValueError as e:
+            str_summary = "解析错误，可能数据包有问题。\n"
+            print(str_summary, e)"""
+        preprocessing()
+        str_summary = run_LinearRegression()
+        self.set_content(str_summary)
+        self.display_text()
         return True
 
     def database_function(self):
@@ -363,6 +449,3 @@ class Function:
             概述：详情见sqlite.function
         """
         pass
-
-
-
