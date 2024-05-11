@@ -274,6 +274,10 @@ class DatabaseFunc:
             text_content = "请检查sql语句是否正确：\n" + str(e)
             self.func.set_content(text_content)
             self.func.display_text()
+        except sqlite3.OperationalError as e:
+            print("出现异常：", e)
+            self.func.set_content(str(e))
+            self.func.display_text()
 
         """
         # 不能关闭，这里赋值用的是地址

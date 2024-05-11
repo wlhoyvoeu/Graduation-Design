@@ -3,6 +3,9 @@ import tkinter as tk
 from tkinter import filedialog
 from scapy.all import *
 from io import StringIO
+
+from scapy.layers.dns import DNS
+
 import Rose.code.NgramSegment as Ngram
 import Rose.code.MessageSegment as MS
 import Rose.code.LinearRegression as LR
@@ -179,6 +182,11 @@ class Function:
                 概述：过滤出含有原始数据的数据包
             """
             # 检查数据包是否同时包含 Raw 层和 TCP 层
+
+            # 抓取的数据包必须包含数据
+            # 这里强制要求抓取的数据包必须含有数据
+            # 但是这里抓取的数据理论上应该与解析函数保持一致
+            # 能解析的函数在这里都能抓取才对
             if Raw in pkt:
                 return True
             return False
@@ -224,10 +232,9 @@ class Function:
                 # 移动文件指针到文件开头以便读取写入的内容
                 f.seek(0)
                 pcap_txt_content = f.read()
-                # 再次移动指针到文件头
-                # w+的功能应该是，从光标位置写入，并且删除后续内容
-                # 但是我们读取文件后，光标在文件末尾，所以成为了追加功能
-                f.seek(0)
+                # 如果发现测试时，会不断向该文件中追加数据，注意问题并不在这
+                # 这里是将pcap->摘要->输出，所以问题只可能是pcap文件有问题
+                # 回溯到抓取数据包时的wrpcap，就是不断向文件中追加数据
                 self.set_content(pcap_txt_content)
                 self.display_text()
 
@@ -396,6 +403,7 @@ class Function:
                         print(X)
                         print('----------------')
             except Exception as e:
+                # 出现I/O operation on closed file.是因为更改的文件控制流异常关闭，所以无法打印
                 print("算法解析出错", e)
             finally:
                 # 恢复标准输出

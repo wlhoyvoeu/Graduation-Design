@@ -8,6 +8,7 @@ from tkinter import ttk
 
 # 定义变量，因为这些变量全局都要使用，所以在这定义
 root = tk.Tk()
+root.title("网络协议长度字段提取系统")
 # 获取电脑屏幕尺寸
 window_x = root.winfo_screenwidth()
 window_y = root.winfo_screenheight()
@@ -263,16 +264,35 @@ def set_right_frame_grasp(frame_top, frame_bottom):
                 后期可以将协议筛选也加入
         """
 
+        # 定义关闭事件处理函数
+        def on_closing():
+            """
+                概述：关闭窗口提示信息
+            """
+            # 显示确认对话框
+            if messagebox.askokcancel("Quit", "Do you want to quit?"):
+                waiting_window.destroy()  # 如果用户选择“OK”，则关闭窗口
+                raise KeyboardInterrupt
+            else:
+                pass  # 否则不执行任何操作
         def task():
             """
                 概述:将抓取数据包这样的耗时操作放入线程中处理
             """
             # 设置一下展示容器
+
             func.set_text(text_display)
             # print("休眠5秒")
             # time.sleep(5)
-            func.grasp_data()
-            waiting_window.destroy()
+            try:
+                # 将WM_DELETE_WINDOW事件绑定到on_closing函数
+                # 同时监控窗口，当结束窗口的同时，关闭抓取数据包的进程
+                waiting_window.protocol("WM_DELETE_WINDOW", on_closing)
+                func.grasp_data()
+            except KeyboardInterrupt as e:
+                print("关闭窗口，结束抓取数据包的进程", e)
+            else:
+                waiting_window.destroy()
 
         # 耗时操作，创建等待窗口
         waiting_window = show_waiting_window()
@@ -507,6 +527,14 @@ def set_right_frame_database(frame_top, frame_bottom):
         func.set_text(text_display)
         func_sqlite.view_database()
 
+    def create_database():
+        """
+            概述：创建链表
+            细节：点击按钮后设置数据展示框架
+        """
+        func.set_text(text_display)
+        func_sqlite.create_database()
+
     def save_config(num, entry):
         """
             概述：保存配置
@@ -546,7 +574,7 @@ def set_right_frame_database(frame_top, frame_bottom):
     # 创建数据库按钮
     # 可能会出现问题，因为这个函数在text控件打印前，没有设置text控件，如果出问题设置一下就行，不想改了
     button_create_database = tk.Button(frame_bottom, text="创建数据库链表",
-                                       command=lambda: func_sqlite.create_database())
+                                       command=create_database)
     button_create_database.grid(row=2, column=1, padx=5, pady=10, sticky="ew")
     # 增加数据
     button_insert_database = tk.Button(frame_bottom, text="添加数据", command=insert_database)
